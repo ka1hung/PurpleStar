@@ -66,27 +66,65 @@ ${chartContext}
 `
 }
 
+export interface ChatConfig {
+  apiEndpoint: string
+  apiKey: string
+  apiModel: string
+}
+
 /**
- * Send message to OpenAI API
+ * Send message to OpenAI-compatible API
  */
 export async function sendChatMessage(
   messages: Array<{ role: 'system' | 'user' | 'assistant'; content: string }>,
-  apiKey: string,
+  config: ChatConfig,
   onStream?: (text: string) => void
 ): Promise<string> {
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
+  const { apiEndpoint, apiKey, apiModel } = config
+  const isAnthropic = apiEndpoint.includes('anthropic')
+
+  // Build request based on API type
+  let url: string
+  let headers: Record<string, string>
+  let body: string
+
+  if (isAnthropic) {
+    // Anthropic API format
+    url = `${apiEndpoint}/v1/messages`
+    headers = {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    }
+    // Convert messages format for Anthropic
+    const systemMsg = messages.find(m => m.role === 'system')
+    const chatMsgs = messages.filter(m => m.role !== 'system')
+    body = JSON.stringify({
+      model: apiModel,
+      max_tokens: 2000,
+      system: systemMsg?.content || '',
+      messages: chatMsgs.map(m => ({ role: m.role, content: m.content })),
+    })
+  } else {
+    // OpenAI compatible API format
+    url = `${apiEndpoint}/chat/completions`
+    headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    }
+    body = JSON.stringify({
+      model: apiModel,
       messages,
       stream: !!onStream,
       temperature: 0.8,
       max_tokens: 2000,
-    }),
+    })
+  }
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers,
+    body,
   })
 
   if (!response.ok) {
@@ -94,8 +132,14 @@ export async function sendChatMessage(
     throw new Error(error.error?.message || `API error: ${response.status}`)
   }
 
+  if (isAnthropic) {
+    // Anthropic doesn't support streaming in the same way, just return the response
+    const data = await response.json()
+    return data.content?.[0]?.text || ''
+  }
+
   if (onStream && response.body) {
-    // Handle streaming response
+    // Handle streaming response (OpenAI compatible)
     const reader = response.body.getReader()
     const decoder = new TextDecoder()
     let fullText = ''

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Link } from 'react-router-dom'
 import { useAppStore } from '../../store'
 import { MasterSelector } from './MasterSelector'
 import { getMasterById } from '../../data/prompts'
@@ -9,7 +10,7 @@ import {
   buildSystemPrompt,
   suggestedQuestions,
 } from '../../lib/openai'
-import type { Chart, ChatMessage, MasterType } from '../../types'
+import type { Chart, ChatMessage } from '../../types'
 
 interface ChatWindowProps {
   chart: Chart
@@ -23,8 +24,9 @@ export function ChatWindow({ chart }: ChatWindowProps) {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [streamingText, setStreamingText] = useState('')
-  const [showApiKeyInput, setShowApiKeyInput] = useState(!settings.apiKey)
-  const [apiKeyInput, setApiKeyInput] = useState('')
+
+  // Check if API is configured
+  const isApiConfigured = settings.apiEndpoint && settings.apiKey && settings.apiModel
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
 
@@ -37,13 +39,6 @@ export function ChatWindow({ chart }: ChatWindowProps) {
   }, [messages, streamingText])
 
   const master = getMasterById(selectedMaster)
-
-  const handleSaveApiKey = () => {
-    if (apiKeyInput.trim()) {
-      useAppStore.getState().updateSettings({ apiKey: apiKeyInput.trim() })
-      setShowApiKeyInput(false)
-    }
-  }
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return
@@ -75,7 +70,11 @@ export function ChatWindow({ chart }: ChatWindowProps) {
 
       const response = await sendChatMessage(
         apiMessages,
-        settings.apiKey!,
+        {
+          apiEndpoint: settings.apiEndpoint!,
+          apiKey: settings.apiKey!,
+          apiModel: settings.apiModel!,
+        },
         (text) => setStreamingText(text)
       )
 
@@ -106,41 +105,21 @@ export function ChatWindow({ chart }: ChatWindowProps) {
     setInput(question)
   }
 
-  if (showApiKeyInput) {
+  if (!isApiConfigured) {
     return (
-      <div className="bg-white rounded-lg shadow-classical p-6">
-        <h3 className="font-serif text-xl text-primary mb-4">設定 OpenAI API Key</h3>
-        <p className="text-ink/60 text-sm mb-4">
-          請輸入您的 OpenAI API Key 以使用 AI 諮詢功能。
-          您的 Key 只會儲存在本地瀏覽器中。
+      <div className="bg-white rounded-lg shadow-classical p-6 text-center">
+        <div className="text-5xl mb-4">⚙️</div>
+        <h3 className="font-serif text-xl text-primary mb-4">請先設定 AI</h3>
+        <p className="text-ink/60 text-sm mb-6">
+          使用 AI 命理諮詢功能前，請先設定 API 路徑、Token 和模型。
         </p>
-        <div className="flex gap-2">
-          <input
-            type="password"
-            value={apiKeyInput}
-            onChange={(e) => setApiKeyInput(e.target.value)}
-            placeholder="sk-..."
-            className="flex-1 px-4 py-2 border border-primary/20 rounded-classical
-                       focus:outline-none focus:ring-2 focus:ring-primary/30"
-          />
-          <button
-            onClick={handleSaveApiKey}
-            className="px-6 py-2 bg-primary text-cream rounded-classical
-                       hover:bg-primary-dark transition-all"
-          >
-            儲存
-          </button>
-        </div>
-        <p className="text-xs text-ink/40 mt-2">
-          <a
-            href="https://platform.openai.com/api-keys"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-primary"
-          >
-            取得 API Key
-          </a>
-        </p>
+        <Link
+          to="/settings"
+          className="inline-block px-6 py-2 bg-primary text-cream rounded-classical
+                     hover:bg-primary-dark transition-all"
+        >
+          前往設定
+        </Link>
       </div>
     )
   }
