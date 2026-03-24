@@ -1,0 +1,6 @@
+export { Home } from './Home'
+export { Calculator } from './Calculator'
+export { Education } from './Education'
+export { About } from './About'
+export { Privacy } from './Privacy'
+export { Disclaimer } from './Disclaimer'

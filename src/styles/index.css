@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Chinese Classical Colors */
+  --color-primary: #8B0000;      /* 朱紅 */
+  --color-gold: #D4AF37;          /* 金色 */
+  --color-ink: #1A1A1A;           /* 墨黑 */
+  --color-cream: #FDF5E6;         /* 米白 */
+  --color-navy: #1E3A5F;          /* 藏青 */
+  --color-purple: #4A0E4E;        /* 紫色 */
+
+  /* Semantic Colors */
+  --color-success: #2D5A27;
+  --color-warning: #B8860B;
+  --color-danger: #8B0000;
+}
+
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background-color: var(--color-cream);
+  color: var(--color-ink);
+}
+
+/* Serif font for headings */
+h1, h2, h3, h4, h5, h6,
+.font-serif {
+  font-family: 'Noto Serif TC', serif;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-cream);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6B0000;
+}
