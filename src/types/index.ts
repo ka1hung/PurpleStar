@@ -100,7 +100,10 @@ export interface Settings {
   language: 'zh-TW' | 'zh-CN' | 'en'
   theme: 'light' | 'dark'
   trueSolarTimeEnabled: boolean
+  // AI Settings
+  apiEndpoint?: string
   apiKey?: string
+  apiModel?: string
 }
 
 // City data for true solar time
