@@ -154,20 +154,28 @@ export function Settings() {
       } else {
         // OpenAI compatible API - test with chat completion
         const testModel = apiModel || 'gpt-4o-mini'
-        const isOpenAI = apiEndpoint.includes('openai')
-        // OpenAI newer models (o1, o3) use max_completion_tokens
-        const maxTokensParam = isOpenAI ? { max_completion_tokens: 1 } : { max_tokens: 1 }
+        // OpenAI o1/o3 models have different requirements
+        const isReasoningModel = testModel.startsWith('o1') || testModel.startsWith('o3')
+
+        const requestBody: Record<string, unknown> = {
+          model: testModel,
+          messages: [{ role: 'user', content: 'Hi' }],
+        }
+
+        if (isReasoningModel) {
+          // o1/o3: no temperature, no stream, use max_completion_tokens
+          requestBody.max_completion_tokens = 10
+        } else {
+          requestBody.max_tokens = 1
+        }
+
         const response = await fetch(`${apiEndpoint}/chat/completions`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`,
           },
-          body: JSON.stringify({
-            model: testModel,
-            ...maxTokensParam,
-            messages: [{ role: 'user', content: 'Hi' }],
-          }),
+          body: JSON.stringify(requestBody),
         })
 
         if (response.ok) {

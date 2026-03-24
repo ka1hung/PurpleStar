@@ -186,16 +186,25 @@ export async function sendChatMessage(
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
     }
-    const isOpenAI = apiEndpoint.includes('openai')
-    // OpenAI newer models (o1, o3) use max_completion_tokens
-    const maxTokensParam = isOpenAI ? { max_completion_tokens: 2000 } : { max_tokens: 2000 }
-    body = JSON.stringify({
-      model: apiModel,
-      messages,
-      stream: !!onStream,
-      temperature: 0.8,
-      ...maxTokensParam,
-    })
+    // OpenAI o1/o3 models have different requirements
+    const isReasoningModel = apiModel.startsWith('o1') || apiModel.startsWith('o3')
+
+    if (isReasoningModel) {
+      // o1/o3: no temperature, no stream, use max_completion_tokens
+      body = JSON.stringify({
+        model: apiModel,
+        messages,
+        max_completion_tokens: 4000,
+      })
+    } else {
+      body = JSON.stringify({
+        model: apiModel,
+        messages,
+        stream: !!onStream,
+        temperature: 0.8,
+        max_tokens: 2000,
+      })
+    }
   }
 
   const response = await fetch(url, {
@@ -209,10 +218,16 @@ export async function sendChatMessage(
     throw new Error(error.error?.message || `API error: ${response.status}`)
   }
 
-  if (isAnthropic) {
-    // Anthropic doesn't support streaming in the same way, just return the response
+  // Check if it's a reasoning model (o1/o3) that doesn't support streaming
+  const isReasoningModel = apiModel.startsWith('o1') || apiModel.startsWith('o3')
+
+  if (isAnthropic || isReasoningModel) {
+    // Anthropic and reasoning models don't support streaming
     const data = await response.json()
-    return data.content?.[0]?.text || ''
+    if (isAnthropic) {
+      return data.content?.[0]?.text || ''
+    }
+    return data.choices?.[0]?.message?.content || ''
   }
 
   if (onStream && response.body) {
