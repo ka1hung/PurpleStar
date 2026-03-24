@@ -22,12 +22,6 @@ const API_PRESETS = [
     defaultModel: 'claude-3-5-sonnet-20241022',
   },
   {
-    name: 'NVIDIA NIM',
-    endpoint: 'https://integrate.api.nvidia.com/v1',
-    placeholder: 'nvapi-...',
-    defaultModel: 'meta/llama-3.1-70b-instruct',
-  },
-  {
     name: 'Ollama (本地)',
     endpoint: 'http://localhost:11434/v1',
     placeholder: '(不需要)',
@@ -85,7 +79,6 @@ export function Settings() {
 
   const testConnection = async () => {
     const isOllama = apiEndpoint.includes('localhost:11434') || apiEndpoint.includes('127.0.0.1:11434')
-    const isNvidia = apiEndpoint.includes('nvidia')
     const isGroq = apiEndpoint.includes('groq')
 
     if (!apiEndpoint || (!apiKey && !isOllama)) {
@@ -132,15 +125,6 @@ export function Settings() {
           setTestResult({ success: true, message: '連線成功！Ollama 服務正常運行' })
         } else {
           setTestResult({ success: false, message: `連線失敗: ${response.status}` })
-        }
-      } else if (isNvidia) {
-        // NVIDIA NIM - doesn't support CORS, just validate API key format
-        if (apiKey && apiKey.startsWith('nvapi-')) {
-          setTestResult({ success: true, message: 'API Key 格式正確！NVIDIA 不支援瀏覽器測試，但在對話時會正常運作' })
-        } else if (apiKey) {
-          setTestResult({ success: false, message: 'API Key 格式不正確，NVIDIA Key 應以 nvapi- 開頭' })
-        } else {
-          setTestResult({ success: false, message: '請輸入 NVIDIA API Key' })
         }
       } else if (isGroq) {
         // Groq - test with chat completion
@@ -208,7 +192,6 @@ export function Settings() {
 
   const fetchModels = async () => {
     const isOllama = apiEndpoint.includes('localhost:11434') || apiEndpoint.includes('127.0.0.1:11434')
-    const isNvidia = apiEndpoint.includes('nvidia')
 
     if (!apiEndpoint || (!apiKey && !isOllama)) {
       setModelError('請先填寫 API 路徑和 Token')
@@ -240,18 +223,6 @@ export function Settings() {
           id: m.name,
           name: m.name,
         }))
-      } else if (isNvidia) {
-        // NVIDIA NIM - provide known models
-        fetchedModels = [
-          { id: 'meta/llama-3.1-405b-instruct', name: 'Llama 3.1 405B' },
-          { id: 'meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B' },
-          { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B' },
-          { id: 'mistralai/mixtral-8x22b-instruct-v0.1', name: 'Mixtral 8x22B' },
-          { id: 'mistralai/mistral-large-2-instruct', name: 'Mistral Large 2' },
-          { id: 'google/gemma-2-27b-it', name: 'Gemma 2 27B' },
-          { id: 'nvidia/nemotron-4-340b-instruct', name: 'Nemotron 340B' },
-          { id: 'qwen/qwen2-72b-instruct', name: 'Qwen2 72B' },
-        ]
       } else if (isAnthropic) {
         // Anthropic doesn't have a public models endpoint
         fetchedModels = [
@@ -523,7 +494,6 @@ export function Settings() {
           <li>• API 金鑰僅儲存在您的瀏覽器本地，不會上傳到任何伺服器</li>
           <li>• <strong>OpenAI</strong>: 推薦使用 gpt-4o-mini 性價比最高</li>
           <li>• <strong>Anthropic</strong>: Claude 系列模型，智能程度高</li>
-          <li>• <strong>NVIDIA NIM</strong>: 免費開源模型，需註冊取得 API Key</li>
           <li>• <strong>Ollama</strong>: 本地運行，完全免費，需先安裝 Ollama</li>
           <li>• <strong>Groq</strong>: 超快速推理，免費額度充足</li>
         </ul>
