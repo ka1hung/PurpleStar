@@ -85,6 +85,8 @@ export function Settings() {
 
   const testConnection = async () => {
     const isOllama = apiEndpoint.includes('localhost:11434') || apiEndpoint.includes('127.0.0.1:11434')
+    const isNvidia = apiEndpoint.includes('nvidia')
+    const isGroq = apiEndpoint.includes('groq')
 
     if (!apiEndpoint || (!apiKey && !isOllama)) {
       setTestResult({ success: false, message: '請先填寫 API 路徑和 Token' })
@@ -130,6 +132,31 @@ export function Settings() {
           setTestResult({ success: true, message: '連線成功！Ollama 服務正常運行' })
         } else {
           setTestResult({ success: false, message: `連線失敗: ${response.status}` })
+        }
+      } else if (isNvidia || isGroq) {
+        // NVIDIA NIM / Groq - test with chat completion using selected model
+        const testModel = apiModel || (isNvidia ? 'meta/llama-3.1-8b-instruct' : 'llama-3.1-8b-instant')
+        const response = await fetch(`${apiEndpoint}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({
+            model: testModel,
+            max_tokens: 5,
+            messages: [{ role: 'user', content: 'Hi' }],
+          }),
+        })
+
+        if (response.ok) {
+          setTestResult({ success: true, message: `連線成功！${isNvidia ? 'NVIDIA NIM' : 'Groq'} API 正常` })
+        } else if (response.status === 401 || response.status === 403) {
+          setTestResult({ success: false, message: 'API 金鑰無效或無權限' })
+        } else {
+          const errorData = await response.json().catch(() => ({}))
+          const errorMsg = errorData.error?.message || response.statusText
+          setTestResult({ success: false, message: `連線失敗: ${errorMsg}` })
         }
       } else {
         // OpenAI compatible API - test with chat completion
