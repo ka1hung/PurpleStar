@@ -15,12 +15,12 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
   const [name, setName] = useState('')
   const [gender, setGender] = useState<'male' | 'female'>('male')
   const [birthDate, setBirthDate] = useState('')
-  const [birthHour, setBirthHour] = useState('12')
-  const [birthMinute, setBirthMinute] = useState('00')
+  const [birthHour, setBirthHour] = useState('11')
   const [cityQuery, setCityQuery] = useState('')
   const [selectedCity, setSelectedCity] = useState<City | null>(null)
   const [showCityDropdown, setShowCityDropdown] = useState(false)
   const [useTrueSolarTime, setUseTrueSolarTime] = useState(true)
+  const [errors, setErrors] = useState<string[]>([])
 
   // Search cities
   const filteredCities = useMemo(() => {
@@ -28,17 +28,22 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
     return searchCities(cityQuery).slice(0, 10)
   }, [cityQuery])
 
-  // Generate hour options
-  const hourOptions = Array.from({ length: 24 }, (_, i) => ({
-    value: String(i).padStart(2, '0'),
-    label: `${String(i).padStart(2, '0')}:00`,
-  }))
-
-  // Generate minute options
-  const minuteOptions = Array.from({ length: 60 }, (_, i) => ({
-    value: String(i).padStart(2, '0'),
-    label: String(i).padStart(2, '0'),
-  }))
+  // Generate hour options with Chinese time periods (時辰)
+  const hourOptions = [
+    { value: '0', label: '子時早 (00:00-00:59)' },
+    { value: '1', label: '丑時早 (01:00-02:59)' },
+    { value: '3', label: '寅時 (03:00-04:59)' },
+    { value: '5', label: '卯時 (05:00-06:59)' },
+    { value: '7', label: '辰時 (07:00-08:59)' },
+    { value: '9', label: '巳時 (09:00-10:59)' },
+    { value: '11', label: '午時 (11:00-12:59)' },
+    { value: '13', label: '未時 (13:00-14:59)' },
+    { value: '15', label: '申時 (15:00-16:59)' },
+    { value: '17', label: '酉時 (17:00-18:59)' },
+    { value: '19', label: '戌時 (19:00-20:59)' },
+    { value: '21', label: '亥時 (21:00-22:59)' },
+    { value: '23', label: '子時晚 (23:00-23:59)' },
+  ]
 
   const handleCitySelect = (city: City) => {
     setSelectedCity(city)
@@ -46,24 +51,39 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
     setShowCityDropdown(false)
   }
 
+  const handleCityBlur = () => {
+    // Auto-select first match when user leaves the field
+    setTimeout(() => {
+      if (!selectedCity && filteredCities.length > 0) {
+        handleCitySelect(filteredCities[0])
+      }
+      setShowCityDropdown(false)
+    }, 200)
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!birthDate || !selectedCity) {
-      alert('請填寫完整資料')
+    const newErrors: string[] = []
+    if (!birthDate) newErrors.push('請選擇出生日期')
+    if (!selectedCity) newErrors.push('請從下拉選單選擇出生地點')
+
+    if (newErrors.length > 0) {
+      setErrors(newErrors)
       return
     }
 
+    setErrors([])
     const [year, month, day] = birthDate.split('-').map(Number)
 
     const data: BirthData = {
       name: name || undefined,
       gender,
       birthDate: new Date(year, month - 1, day),
-      birthTime: `${birthHour}:${birthMinute}`,
-      birthPlace: selectedCity.name,
-      longitude: selectedCity.longitude,
-      timezone: selectedCity.timezone,
+      birthTime: `${birthHour}:00`,
+      birthPlace: selectedCity!.name,
+      longitude: selectedCity!.longitude,
+      timezone: selectedCity!.timezone,
     }
 
     onSubmit(data)
@@ -159,35 +179,19 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
         <label className="block text-sm font-medium text-ink mb-1">
           {t('calculator.form.birthTime')}
         </label>
-        <div className="flex gap-2 items-center">
-          <select
-            value={birthHour}
-            onChange={(e) => setBirthHour(e.target.value)}
-            className="flex-1 px-4 py-2 border border-primary/20 rounded-classical
-                       focus:outline-none focus:ring-2 focus:ring-primary/30
-                       bg-white"
-          >
-            {hourOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <span className="text-ink">:</span>
-          <select
-            value={birthMinute}
-            onChange={(e) => setBirthMinute(e.target.value)}
-            className="flex-1 px-4 py-2 border border-primary/20 rounded-classical
-                       focus:outline-none focus:ring-2 focus:ring-primary/30
-                       bg-white"
-          >
-            {minuteOptions.map((opt) => (
-              <option key={opt.value} value={opt.value}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-        </div>
+        <select
+          value={birthHour}
+          onChange={(e) => setBirthHour(e.target.value)}
+          className="w-full px-4 py-2 border border-primary/20 rounded-classical
+                     focus:outline-none focus:ring-2 focus:ring-primary/30
+                     bg-white"
+        >
+          {hourOptions.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Birth Place */}
@@ -204,8 +208,8 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
             if (!e.target.value) setSelectedCity(null)
           }}
           onFocus={() => setShowCityDropdown(true)}
+          onBlur={handleCityBlur}
           placeholder={t('calculator.form.birthPlacePlaceholder')}
-          required
           className="w-full px-4 py-2 border border-primary/20 rounded-classical
                      focus:outline-none focus:ring-2 focus:ring-primary/30
                      bg-white"
@@ -264,6 +268,17 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
                           after:transition-all peer-checked:bg-primary" />
         </label>
       </div>
+
+      {/* Error Messages */}
+      {errors.length > 0 && (
+        <div className="p-4 bg-red-50 border border-red-200 rounded-classical">
+          <ul className="text-red-700 text-sm space-y-1">
+            {errors.map((error, i) => (
+              <li key={i}>{error}</li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Submit Button */}
       <Button

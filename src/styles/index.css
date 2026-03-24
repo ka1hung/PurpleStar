@@ -1,32 +1,45 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-:root {
-  /* Chinese Classical Colors */
-  --color-primary: #8B0000;      /* 朱紅 */
-  --color-gold: #D4AF37;          /* 金色 */
-  --color-ink: #1A1A1A;           /* 墨黑 */
-  --color-cream: #FDF5E6;         /* 米白 */
-  --color-navy: #1E3A5F;          /* 藏青 */
-  --color-purple: #4A0E4E;        /* 紫色 */
+@theme {
+  --color-primary: #8B0000;
+  --color-primary-light: #A52A2A;
+  --color-primary-dark: #6B0000;
 
-  /* Semantic Colors */
-  --color-success: #2D5A27;
-  --color-warning: #B8860B;
-  --color-danger: #8B0000;
+  --color-gold: #D4AF37;
+  --color-gold-light: #E5C158;
+  --color-gold-dark: #B8960C;
+
+  --color-ink: #1A1A1A;
+  --color-ink-light: #333333;
+
+  --color-cream: #FDF5E6;
+  --color-cream-dark: #F5E6D3;
+
+  --color-navy: #1E3A5F;
+  --color-navy-light: #2E4A6F;
+  --color-navy-dark: #0E2A4F;
+
+  --color-purple: #4A0E4E;
+  --color-purple-light: #6B2E6E;
+  --color-purple-dark: #2A0E2E;
+
+  --font-serif: 'Noto Serif TC', serif;
+  --font-sans: 'Noto Sans TC', sans-serif;
+
+  --shadow-classical: 0 4px 6px -1px rgba(139, 0, 0, 0.1), 0 2px 4px -1px rgba(139, 0, 0, 0.06);
+  --shadow-gold: 0 4px 14px 0 rgba(212, 175, 55, 0.3);
+
+  --radius-classical: 0.125rem;
 }
 
 body {
-  font-family: 'Noto Sans TC', sans-serif;
+  font-family: var(--font-sans);
   background-color: var(--color-cream);
   color: var(--color-ink);
 }
 
-/* Serif font for headings */
-h1, h2, h3, h4, h5, h6,
-.font-serif {
-  font-family: 'Noto Serif TC', serif;
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-serif);
 }
 
 /* Scrollbar styling */
@@ -44,5 +57,5 @@ h1, h2, h3, h4, h5, h6,
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #6B0000;
+  background: var(--color-primary-dark);
 }
