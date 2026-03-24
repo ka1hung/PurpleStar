@@ -133,9 +133,18 @@ export function Settings() {
         } else {
           setTestResult({ success: false, message: `連線失敗: ${response.status}` })
         }
-      } else if (isNvidia || isGroq) {
-        // NVIDIA NIM / Groq - test with chat completion using selected model
-        const testModel = apiModel || (isNvidia ? 'meta/llama-3.1-8b-instruct' : 'llama-3.1-8b-instant')
+      } else if (isNvidia) {
+        // NVIDIA NIM - doesn't support CORS, just validate API key format
+        if (apiKey && apiKey.startsWith('nvapi-')) {
+          setTestResult({ success: true, message: 'API Key 格式正確！NVIDIA 不支援瀏覽器測試，但在對話時會正常運作' })
+        } else if (apiKey) {
+          setTestResult({ success: false, message: 'API Key 格式不正確，NVIDIA Key 應以 nvapi- 開頭' })
+        } else {
+          setTestResult({ success: false, message: '請輸入 NVIDIA API Key' })
+        }
+      } else if (isGroq) {
+        // Groq - test with chat completion
+        const testModel = apiModel || 'llama-3.1-8b-instant'
         const response = await fetch(`${apiEndpoint}/chat/completions`, {
           method: 'POST',
           headers: {
@@ -150,7 +159,7 @@ export function Settings() {
         })
 
         if (response.ok) {
-          setTestResult({ success: true, message: `連線成功！${isNvidia ? 'NVIDIA NIM' : 'Groq'} API 正常` })
+          setTestResult({ success: true, message: '連線成功！Groq API 正常' })
         } else if (response.status === 401 || response.status === 403) {
           setTestResult({ success: false, message: 'API 金鑰無效或無權限' })
         } else {
