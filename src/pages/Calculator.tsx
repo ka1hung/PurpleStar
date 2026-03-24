@@ -56,7 +56,7 @@ export function Calculator() {
               <h2 className="font-serif text-xl text-primary mb-4">已儲存的命盤</h2>
               <div className="bg-white rounded-lg border border-primary/20 divide-y divide-primary/10">
                 {charts.map((savedChart) => {
-                  const birthDate = new Date(savedChart.birthData.birthDate)
+                  const birthDate = new Date(savedChart.birthData.birthDate) // Ensure it's a Date object
                   return (
                     <div
                       key={savedChart.id}

@@ -32,7 +32,7 @@ export function formatChartForAI(chart: Chart): string {
 【命盤資料】
 姓名：${birthData.name || '未提供'}
 性別：${birthData.gender === 'male' ? '男' : '女'}
-出生時間：${birthData.birthDate.toLocaleDateString('zh-TW')} ${trueSolarTime.corrected}（已真太陽時校正）
+出生時間：${new Date(birthData.birthDate).toLocaleDateString('zh-TW')} ${trueSolarTime.corrected}（已真太陽時校正）
 農曆：${lunarDate.yearGanZhi}年 ${lunarDate.month}月 ${lunarDate.day}日 ${lunarDate.hourGanZhi}
 出生地：${birthData.birthPlace}
 五行局：${fiveElement}

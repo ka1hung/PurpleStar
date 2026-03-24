@@ -27,7 +27,7 @@ export function ChartCenter({ chart }: ChartCenterProps) {
       <div className="space-y-1 text-sm">
         {/* Solar date */}
         <p className="text-ink/70">
-          {birthData.birthDate.toLocaleDateString('zh-TW', {
+          {new Date(birthData.birthDate).toLocaleDateString('zh-TW', {
             year: 'numeric',
             month: 'long',
             day: 'numeric',
