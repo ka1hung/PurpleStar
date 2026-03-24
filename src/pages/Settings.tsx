@@ -20,6 +20,10 @@ export function Settings() {
   const [loadingModels, setLoadingModels] = useState(false)
   const [modelError, setModelError] = useState('')
 
+  // Connection test state
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null)
+
   useEffect(() => {
     setApiEndpoint(settings.apiEndpoint || '')
     setApiKey(settings.apiKey || '')
@@ -34,6 +38,71 @@ export function Settings() {
     })
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
+  }
+
+  const testConnection = async () => {
+    if (!apiEndpoint || !apiKey) {
+      setTestResult({ success: false, message: '請先填寫 API 路徑和 Token' })
+      return
+    }
+
+    setTesting(true)
+    setTestResult(null)
+
+    try {
+      const isAnthropic = apiEndpoint.includes('anthropic')
+
+      if (isAnthropic) {
+        // Anthropic API test - use messages endpoint with minimal request
+        const response = await fetch(`${apiEndpoint}/v1/messages`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-api-key': apiKey,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'claude-3-5-haiku-20241022',
+            max_tokens: 1,
+            messages: [{ role: 'user', content: 'Hi' }],
+          }),
+        })
+
+        if (response.ok || response.status === 400) {
+          // 400 might mean invalid model but auth is ok
+          setTestResult({ success: true, message: '連線成功！API 金鑰有效' })
+        } else if (response.status === 401) {
+          setTestResult({ success: false, message: 'API 金鑰無效' })
+        } else {
+          setTestResult({ success: false, message: `連線失敗: ${response.status}` })
+        }
+      } else {
+        // OpenAI compatible API test - use models endpoint
+        const response = await fetch(`${apiEndpoint}/models`, {
+          headers: {
+            'Authorization': `Bearer ${apiKey}`,
+          },
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          const modelCount = data.data?.length || 0
+          setTestResult({ success: true, message: `連線成功！找到 ${modelCount} 個模型` })
+        } else if (response.status === 401) {
+          setTestResult({ success: false, message: 'API 金鑰無效' })
+        } else {
+          setTestResult({ success: false, message: `連線失敗: ${response.status} ${response.statusText}` })
+        }
+      }
+    } catch (error) {
+      console.error('Connection test failed:', error)
+      setTestResult({
+        success: false,
+        message: error instanceof Error ? `錯誤: ${error.message}` : '連線測試失敗'
+      })
+    } finally {
+      setTesting(false)
+    }
   }
 
   const fetchModels = async () => {
@@ -168,6 +237,27 @@ export function Settings() {
           <p className="text-xs text-ink/50 mt-1">
             您的 API 金鑰將安全地儲存在瀏覽器本地
           </p>
+        </div>
+
+        {/* Test Connection */}
+        <div>
+          <Button
+            variant="outline"
+            onClick={testConnection}
+            loading={testing}
+          >
+            {testing ? '測試中...' : '測試連線'}
+          </Button>
+
+          {testResult && (
+            <div className={`mt-2 p-3 rounded-classical text-sm ${
+              testResult.success
+                ? 'bg-green-50 border border-green-200 text-green-700'
+                : 'bg-red-50 border border-red-200 text-red-700'
+            }`}>
+              {testResult.success ? '✓ ' : '✗ '}{testResult.message}
+            </div>
+          )}
         </div>
 
         {/* Model */}
