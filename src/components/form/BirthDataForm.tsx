@@ -12,13 +12,32 @@ interface BirthDataFormProps {
 export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProps) {
   const { t } = useTranslation()
 
+  const currentYear = new Date().getFullYear()
+
   const [name, setName] = useState('')
   const [gender, setGender] = useState<'male' | 'female'>('male')
-  const [birthDate, setBirthDate] = useState('')
+  const [birthYear, setBirthYear] = useState(String(currentYear - 30))
+  const [birthMonth, setBirthMonth] = useState('1')
+  const [birthDay, setBirthDay] = useState('1')
   const [birthHour, setBirthHour] = useState('11')
   const [selectedCity, setSelectedCity] = useState<City | null>(null)
   const [useTrueSolarTime, setUseTrueSolarTime] = useState(true)
   const [errors, setErrors] = useState<string[]>([])
+
+  // Generate year options (1900 to current year)
+  const yearOptions = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i)
+
+  // Generate month options
+  const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1)
+
+  // Generate day options based on selected year and month
+  const getDaysInMonth = (year: number, month: number) => {
+    return new Date(year, month, 0).getDate()
+  }
+  const dayOptions = Array.from(
+    { length: getDaysInMonth(Number(birthYear), Number(birthMonth)) },
+    (_, i) => i + 1
+  )
 
   // Generate hour options with Chinese time periods (時辰)
   const hourOptions = [
@@ -47,7 +66,6 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
     e.preventDefault()
 
     const newErrors: string[] = []
-    if (!birthDate) newErrors.push('請選擇出生日期')
     if (!selectedCity) newErrors.push('請選擇出生地點')
 
     if (newErrors.length > 0) {
@@ -56,7 +74,9 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
     }
 
     setErrors([])
-    const [year, month, day] = birthDate.split('-').map(Number)
+    const year = Number(birthYear)
+    const month = Number(birthMonth)
+    const day = Number(birthDay)
 
     const data: BirthData = {
       name: name || undefined,
@@ -145,15 +165,41 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
         <label className="block text-sm font-medium text-ink mb-1">
           {t('calculator.form.birthDate')}
         </label>
-        <input
-          type="date"
-          value={birthDate}
-          onChange={(e) => setBirthDate(e.target.value)}
-          required
-          className="w-full px-4 py-2 border border-primary/20 rounded-classical
-                     focus:outline-none focus:ring-2 focus:ring-primary/30
-                     bg-white"
-        />
+        <div className="grid grid-cols-3 gap-2">
+          <select
+            value={birthYear}
+            onChange={(e) => setBirthYear(e.target.value)}
+            className="px-3 py-2 border border-primary/20 rounded-classical
+                       focus:outline-none focus:ring-2 focus:ring-primary/30
+                       bg-white text-center"
+          >
+            {yearOptions.map((year) => (
+              <option key={year} value={year}>{year} 年</option>
+            ))}
+          </select>
+          <select
+            value={birthMonth}
+            onChange={(e) => setBirthMonth(e.target.value)}
+            className="px-3 py-2 border border-primary/20 rounded-classical
+                       focus:outline-none focus:ring-2 focus:ring-primary/30
+                       bg-white text-center"
+          >
+            {monthOptions.map((month) => (
+              <option key={month} value={month}>{month} 月</option>
+            ))}
+          </select>
+          <select
+            value={birthDay}
+            onChange={(e) => setBirthDay(e.target.value)}
+            className="px-3 py-2 border border-primary/20 rounded-classical
+                       focus:outline-none focus:ring-2 focus:ring-primary/30
+                       bg-white text-center"
+          >
+            {dayOptions.map((day) => (
+              <option key={day} value={day}>{day} 日</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Birth Time */}
