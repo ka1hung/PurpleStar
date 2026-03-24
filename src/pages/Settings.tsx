@@ -62,14 +62,13 @@ export function Settings() {
             'anthropic-version': '2023-06-01',
           },
           body: JSON.stringify({
-            model: 'claude-3-5-haiku-20241022',
+            model: apiModel || 'claude-3-5-haiku-20241022',
             max_tokens: 1,
             messages: [{ role: 'user', content: 'Hi' }],
           }),
         })
 
         if (response.ok || response.status === 400) {
-          // 400 might mean invalid model but auth is ok
           setTestResult({ success: true, message: '連線成功！API 金鑰有效' })
         } else if (response.status === 401) {
           setTestResult({ success: false, message: 'API 金鑰無效' })
@@ -77,21 +76,31 @@ export function Settings() {
           setTestResult({ success: false, message: `連線失敗: ${response.status}` })
         }
       } else {
-        // OpenAI compatible API test - use models endpoint
-        const response = await fetch(`${apiEndpoint}/models`, {
+        // OpenAI compatible API - test with chat completion (works even without /models)
+        const testModel = apiModel || 'gpt-4o-mini'
+        const response = await fetch(`${apiEndpoint}/chat/completions`, {
+          method: 'POST',
           headers: {
+            'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`,
           },
+          body: JSON.stringify({
+            model: testModel,
+            max_tokens: 1,
+            messages: [{ role: 'user', content: 'Hi' }],
+          }),
         })
 
         if (response.ok) {
-          const data = await response.json()
-          const modelCount = data.data?.length || 0
-          setTestResult({ success: true, message: `連線成功！找到 ${modelCount} 個模型` })
+          setTestResult({ success: true, message: `連線成功！模型 ${testModel} 可用` })
         } else if (response.status === 401) {
           setTestResult({ success: false, message: 'API 金鑰無效' })
+        } else if (response.status === 404) {
+          setTestResult({ success: false, message: `模型 ${testModel} 不存在，請確認模型名稱` })
         } else {
-          setTestResult({ success: false, message: `連線失敗: ${response.status} ${response.statusText}` })
+          const errorData = await response.json().catch(() => ({}))
+          const errorMsg = errorData.error?.message || response.statusText
+          setTestResult({ success: false, message: `連線失敗: ${errorMsg}` })
         }
       }
     } catch (error) {
