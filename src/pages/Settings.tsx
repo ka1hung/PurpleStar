@@ -7,6 +7,40 @@ interface ModelInfo {
   name: string
 }
 
+// API Provider presets
+const API_PRESETS = [
+  {
+    name: 'OpenAI',
+    endpoint: 'https://api.openai.com/v1',
+    placeholder: 'sk-...',
+    defaultModel: 'gpt-4o-mini',
+  },
+  {
+    name: 'Anthropic',
+    endpoint: 'https://api.anthropic.com',
+    placeholder: 'sk-ant-...',
+    defaultModel: 'claude-3-5-sonnet-20241022',
+  },
+  {
+    name: 'NVIDIA NIM',
+    endpoint: 'https://integrate.api.nvidia.com/v1',
+    placeholder: 'nvapi-...',
+    defaultModel: 'meta/llama-3.1-70b-instruct',
+  },
+  {
+    name: 'Ollama (本地)',
+    endpoint: 'http://localhost:11434/v1',
+    placeholder: '(不需要)',
+    defaultModel: 'llama3',
+  },
+  {
+    name: 'Groq',
+    endpoint: 'https://api.groq.com/openai/v1',
+    placeholder: 'gsk_...',
+    defaultModel: 'llama-3.1-70b-versatile',
+  },
+]
+
 export function Settings() {
   const { settings, updateSettings } = useAppStore()
 
@@ -14,6 +48,7 @@ export function Settings() {
   const [apiKey, setApiKey] = useState(settings.apiKey || '')
   const [apiModel, setApiModel] = useState(settings.apiModel || '')
   const [saved, setSaved] = useState(false)
+  const [selectedPreset, setSelectedPreset] = useState<string | null>(null)
 
   // Model fetching state
   const [models, setModels] = useState<ModelInfo[]>([])
@@ -40,8 +75,18 @@ export function Settings() {
     setTimeout(() => setSaved(false), 2000)
   }
 
+  const handlePresetSelect = (preset: typeof API_PRESETS[0]) => {
+    setApiEndpoint(preset.endpoint)
+    setApiModel(preset.defaultModel)
+    setSelectedPreset(preset.name)
+    setModels([])
+    setTestResult(null)
+  }
+
   const testConnection = async () => {
-    if (!apiEndpoint || !apiKey) {
+    const isOllama = apiEndpoint.includes('localhost:11434') || apiEndpoint.includes('127.0.0.1:11434')
+
+    if (!apiEndpoint || (!apiKey && !isOllama)) {
       setTestResult({ success: false, message: '請先填寫 API 路徑和 Token' })
       return
     }
@@ -75,8 +120,19 @@ export function Settings() {
         } else {
           setTestResult({ success: false, message: `連線失敗: ${response.status}` })
         }
+      } else if (isOllama) {
+        // Ollama - test with models endpoint (no auth needed)
+        const response = await fetch(`${apiEndpoint}/models`, {
+          method: 'GET',
+        })
+
+        if (response.ok) {
+          setTestResult({ success: true, message: '連線成功！Ollama 服務正常運行' })
+        } else {
+          setTestResult({ success: false, message: `連線失敗: ${response.status}` })
+        }
       } else {
-        // OpenAI compatible API - test with chat completion (works even without /models)
+        // OpenAI compatible API - test with chat completion
         const testModel = apiModel || 'gpt-4o-mini'
         const response = await fetch(`${apiEndpoint}/chat/completions`, {
           method: 'POST',
@@ -115,7 +171,10 @@ export function Settings() {
   }
 
   const fetchModels = async () => {
-    if (!apiEndpoint || !apiKey) {
+    const isOllama = apiEndpoint.includes('localhost:11434') || apiEndpoint.includes('127.0.0.1:11434')
+    const isNvidia = apiEndpoint.includes('nvidia')
+
+    if (!apiEndpoint || (!apiKey && !isOllama)) {
       setModelError('請先填寫 API 路徑和 Token')
       return
     }
@@ -128,10 +187,54 @@ export function Settings() {
       // Determine API type based on endpoint
       const isOpenAI = apiEndpoint.includes('openai')
       const isAnthropic = apiEndpoint.includes('anthropic')
+      const isGroq = apiEndpoint.includes('groq')
 
       let fetchedModels: ModelInfo[] = []
 
-      if (isOpenAI || (!isAnthropic && apiEndpoint.includes('/v1'))) {
+      if (isOllama) {
+        // Ollama - use /api/tags endpoint
+        const response = await fetch(apiEndpoint.replace('/v1', '') + '/api/tags')
+
+        if (!response.ok) {
+          throw new Error(`Ollama 錯誤: ${response.status}`)
+        }
+
+        const data = await response.json()
+        fetchedModels = (data.models || []).map((m: any) => ({
+          id: m.name,
+          name: m.name,
+        }))
+      } else if (isNvidia) {
+        // NVIDIA NIM - provide known models
+        fetchedModels = [
+          { id: 'meta/llama-3.1-405b-instruct', name: 'Llama 3.1 405B' },
+          { id: 'meta/llama-3.1-70b-instruct', name: 'Llama 3.1 70B' },
+          { id: 'meta/llama-3.1-8b-instruct', name: 'Llama 3.1 8B' },
+          { id: 'mistralai/mixtral-8x22b-instruct-v0.1', name: 'Mixtral 8x22B' },
+          { id: 'mistralai/mistral-large-2-instruct', name: 'Mistral Large 2' },
+          { id: 'google/gemma-2-27b-it', name: 'Gemma 2 27B' },
+          { id: 'nvidia/nemotron-4-340b-instruct', name: 'Nemotron 340B' },
+          { id: 'qwen/qwen2-72b-instruct', name: 'Qwen2 72B' },
+        ]
+      } else if (isAnthropic) {
+        // Anthropic doesn't have a public models endpoint
+        fetchedModels = [
+          { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
+          { id: 'claude-opus-4-20250514', name: 'Claude Opus 4' },
+          { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
+          { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' },
+          { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
+        ]
+      } else if (isGroq) {
+        // Groq - provide known models
+        fetchedModels = [
+          { id: 'llama-3.3-70b-versatile', name: 'Llama 3.3 70B' },
+          { id: 'llama-3.1-70b-versatile', name: 'Llama 3.1 70B' },
+          { id: 'llama-3.1-8b-instant', name: 'Llama 3.1 8B' },
+          { id: 'mixtral-8x7b-32768', name: 'Mixtral 8x7B' },
+          { id: 'gemma2-9b-it', name: 'Gemma 2 9B' },
+        ]
+      } else if (isOpenAI || apiEndpoint.includes('/v1')) {
         // OpenAI compatible API
         const response = await fetch(`${apiEndpoint}/models`, {
           headers: {
@@ -157,7 +260,6 @@ export function Settings() {
             m.id.includes('o3')
           )
           .sort((a: ModelInfo, b: ModelInfo) => {
-            // Prioritize newer models
             const priority = ['gpt-4o', 'gpt-4-turbo', 'gpt-4', 'gpt-3.5', 'o1', 'o3']
             const aIdx = priority.findIndex(p => a.id.includes(p))
             const bIdx = priority.findIndex(p => b.id.includes(p))
@@ -166,15 +268,6 @@ export function Settings() {
             if (bIdx !== -1) return 1
             return a.id.localeCompare(b.id)
           })
-      } else if (isAnthropic) {
-        // Anthropic doesn't have a public models endpoint, use known models
-        fetchedModels = [
-          { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
-          { id: 'claude-opus-4-20250514', name: 'Claude Opus 4' },
-          { id: 'claude-3-5-sonnet-20241022', name: 'Claude 3.5 Sonnet' },
-          { id: 'claude-3-5-haiku-20241022', name: 'Claude 3.5 Haiku' },
-          { id: 'claude-3-opus-20240229', name: 'Claude 3 Opus' },
-        ]
       } else {
         // Try generic OpenAI-compatible endpoint
         const response = await fetch(`${apiEndpoint}/models`, {
@@ -210,6 +303,29 @@ export function Settings() {
       <h1 className="text-3xl font-serif text-primary mb-8">AI 設定</h1>
 
       <div className="bg-white rounded-lg border border-primary/20 p-6 space-y-6">
+        {/* Preset Selector */}
+        <div>
+          <label className="block text-sm font-medium text-ink mb-2">
+            快速選擇 API 服務
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {API_PRESETS.map((preset) => (
+              <button
+                key={preset.name}
+                type="button"
+                onClick={() => handlePresetSelect(preset)}
+                className={`px-3 py-1.5 text-sm rounded-full border transition-all
+                  ${selectedPreset === preset.name
+                    ? 'bg-primary text-cream border-primary'
+                    : 'bg-white text-ink border-primary/30 hover:border-primary/60'
+                  }`}
+              >
+                {preset.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
         {/* API Endpoint */}
         <div>
           <label className="block text-sm font-medium text-ink mb-2">
@@ -233,15 +349,19 @@ export function Settings() {
         <div>
           <label className="block text-sm font-medium text-ink mb-2">
             API Token (Key)
+            {selectedPreset === 'Ollama (本地)' && (
+              <span className="ml-2 text-xs text-ink/50">(本地服務不需要)</span>
+            )}
           </label>
           <input
             type="password"
             value={apiKey}
             onChange={(e) => setApiKey(e.target.value)}
-            placeholder="sk-..."
+            placeholder={API_PRESETS.find(p => p.name === selectedPreset)?.placeholder || 'sk-...'}
+            disabled={selectedPreset === 'Ollama (本地)'}
             className="w-full px-4 py-2 border border-primary/20 rounded-classical
                        focus:outline-none focus:ring-2 focus:ring-primary/30
-                       bg-white font-mono"
+                       bg-white font-mono disabled:bg-gray-100 disabled:text-ink/50"
           />
           <p className="text-xs text-ink/50 mt-1">
             您的 API 金鑰將安全地儲存在瀏覽器本地
@@ -363,10 +483,13 @@ export function Settings() {
       <div className="mt-8 p-4 bg-gold/10 rounded-lg">
         <h3 className="font-medium text-ink mb-2">使用說明</h3>
         <ul className="text-sm text-ink/70 space-y-1">
-          <li>• 填寫 API 路徑和 Token 後，點擊「取得模型列表」</li>
+          <li>• 點擊上方按鈕快速選擇 API 服務，或手動填寫路徑</li>
           <li>• API 金鑰僅儲存在您的瀏覽器本地，不會上傳到任何伺服器</li>
-          <li>• 建議使用 gpt-4o-mini 以獲得較好的性價比</li>
-          <li>• 如使用其他相容 API，請修改 API 路徑</li>
+          <li>• <strong>OpenAI</strong>: 推薦使用 gpt-4o-mini 性價比最高</li>
+          <li>• <strong>Anthropic</strong>: Claude 系列模型，智能程度高</li>
+          <li>• <strong>NVIDIA NIM</strong>: 免費開源模型，需註冊取得 API Key</li>
+          <li>• <strong>Ollama</strong>: 本地運行，完全免費，需先安裝 Ollama</li>
+          <li>• <strong>Groq</strong>: 超快速推理，免費額度充足</li>
         </ul>
       </div>
     </div>
