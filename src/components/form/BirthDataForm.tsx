@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../common/Button'
-import { cities, searchCities } from '../../lib/cities'
+import { cities } from '../../lib/cities'
 import type { BirthData, City } from '../../types'
 
 interface BirthDataFormProps {
@@ -16,17 +16,9 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
   const [gender, setGender] = useState<'male' | 'female'>('male')
   const [birthDate, setBirthDate] = useState('')
   const [birthHour, setBirthHour] = useState('11')
-  const [cityQuery, setCityQuery] = useState('')
   const [selectedCity, setSelectedCity] = useState<City | null>(null)
-  const [showCityDropdown, setShowCityDropdown] = useState(false)
   const [useTrueSolarTime, setUseTrueSolarTime] = useState(true)
   const [errors, setErrors] = useState<string[]>([])
-
-  // Search cities
-  const filteredCities = useMemo(() => {
-    if (!cityQuery || cityQuery.length < 1) return []
-    return searchCities(cityQuery).slice(0, 10)
-  }, [cityQuery])
 
   // Generate hour options with Chinese time periods (時辰)
   const hourOptions = [
@@ -45,20 +37,10 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
     { value: '23', label: '子時晚 (23:00-23:59)' },
   ]
 
-  const handleCitySelect = (city: City) => {
+  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const cityName = e.target.value
+    const city = cities.find(c => c.name === cityName) || null
     setSelectedCity(city)
-    setCityQuery(city.name)
-    setShowCityDropdown(false)
-  }
-
-  const handleCityBlur = () => {
-    // Auto-select first match when user leaves the field
-    setTimeout(() => {
-      if (!selectedCity && filteredCities.length > 0) {
-        handleCitySelect(filteredCities[0])
-      }
-      setShowCityDropdown(false)
-    }, 200)
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -66,7 +48,7 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
 
     const newErrors: string[] = []
     if (!birthDate) newErrors.push('請選擇出生日期')
-    if (!selectedCity) newErrors.push('請從下拉選單選擇出生地點')
+    if (!selectedCity) newErrors.push('請選擇出生地點')
 
     if (newErrors.length > 0) {
       setErrors(newErrors)
@@ -195,47 +177,54 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
       </div>
 
       {/* Birth Place */}
-      <div className="relative">
+      <div>
         <label className="block text-sm font-medium text-ink mb-1">
           {t('calculator.form.birthPlace')}
         </label>
-        <input
-          type="text"
-          value={cityQuery}
-          onChange={(e) => {
-            setCityQuery(e.target.value)
-            setShowCityDropdown(true)
-            if (!e.target.value) setSelectedCity(null)
-          }}
-          onFocus={() => setShowCityDropdown(true)}
-          onBlur={handleCityBlur}
-          placeholder={t('calculator.form.birthPlacePlaceholder')}
+        <select
+          value={selectedCity?.name || ''}
+          onChange={handleCityChange}
           className="w-full px-4 py-2 border border-primary/20 rounded-classical
                      focus:outline-none focus:ring-2 focus:ring-primary/30
                      bg-white"
-        />
-
-        {/* City dropdown */}
-        {showCityDropdown && filteredCities.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white border border-primary/20 rounded-classical shadow-lg max-h-60 overflow-auto">
-            {filteredCities.map((city) => (
-              <button
-                key={`${city.name}-${city.country}`}
-                type="button"
-                onClick={() => handleCitySelect(city)}
-                className="w-full text-left px-4 py-2 hover:bg-cream transition-colors"
-              >
-                <span className="font-medium">{city.name}</span>
-                <span className="text-ink/50 text-sm ml-2">
-                  {city.nameEn} · {city.country}
-                </span>
-                <span className="text-ink/30 text-xs ml-2">
-                  ({city.longitude.toFixed(2)}°)
-                </span>
-              </button>
+        >
+          <option value="">-- 請選擇出生地 --</option>
+          <optgroup label="台灣">
+            {cities.filter(c => c.country === 'Taiwan').map(city => (
+              <option key={city.name} value={city.name}>
+                {city.name} ({city.nameEn})
+              </option>
             ))}
-          </div>
-        )}
+          </optgroup>
+          <optgroup label="中國大陸">
+            {cities.filter(c => c.country === 'China').map(city => (
+              <option key={city.name} value={city.name}>
+                {city.name} ({city.nameEn})
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="港澳">
+            {cities.filter(c => c.country === 'Hong Kong' || c.country === 'Macau').map(city => (
+              <option key={city.name} value={city.name}>
+                {city.name} ({city.nameEn})
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="東南亞">
+            {cities.filter(c => ['Singapore', 'Malaysia', 'Thailand', 'Indonesia', 'Vietnam', 'Philippines'].includes(c.country)).map(city => (
+              <option key={city.name} value={city.name}>
+                {city.name} ({city.nameEn})
+              </option>
+            ))}
+          </optgroup>
+          <optgroup label="其他地區">
+            {cities.filter(c => ['Japan', 'South Korea', 'USA', 'Canada', 'UK', 'France', 'Australia'].includes(c.country)).map(city => (
+              <option key={city.name} value={city.name}>
+                {city.name} ({city.nameEn})
+              </option>
+            ))}
+          </optgroup>
+        </select>
 
         {/* Selected city info */}
         {selectedCity && (
