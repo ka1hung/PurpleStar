@@ -186,12 +186,15 @@ export async function sendChatMessage(
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
     }
+    const isOpenAI = apiEndpoint.includes('openai')
+    // OpenAI newer models (o1, o3) use max_completion_tokens
+    const maxTokensParam = isOpenAI ? { max_completion_tokens: 2000 } : { max_tokens: 2000 }
     body = JSON.stringify({
       model: apiModel,
       messages,
       stream: !!onStream,
       temperature: 0.8,
-      max_tokens: 2000,
+      ...maxTokensParam,
     })
   }
 

@@ -154,6 +154,9 @@ export function Settings() {
       } else {
         // OpenAI compatible API - test with chat completion
         const testModel = apiModel || 'gpt-4o-mini'
+        const isOpenAI = apiEndpoint.includes('openai')
+        // OpenAI newer models (o1, o3) use max_completion_tokens
+        const maxTokensParam = isOpenAI ? { max_completion_tokens: 1 } : { max_tokens: 1 }
         const response = await fetch(`${apiEndpoint}/chat/completions`, {
           method: 'POST',
           headers: {
@@ -162,7 +165,7 @@ export function Settings() {
           },
           body: JSON.stringify({
             model: testModel,
-            max_tokens: 1,
+            ...maxTokensParam,
             messages: [{ role: 'user', content: 'Hi' }],
           }),
         })
