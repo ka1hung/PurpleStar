@@ -1,10 +1,8 @@
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 
 type TabId = 'intro' | 'palaces' | 'stars' | 'transformations' | 'howto'
 
 export function Education() {
-  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<TabId>('intro')
 
   const tabs = [
@@ -77,36 +75,38 @@ function IntroContent() {
       </ul>
 
       <h3 className="font-serif text-xl text-primary/80">與八字、西洋占星的差異</h3>
-      <table className="w-full">
-        <thead>
-          <tr>
-            <th>項目</th>
-            <th>紫微斗數</th>
-            <th>八字</th>
-            <th>西洋占星</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>基礎</td>
-            <td>星曜 + 宮位</td>
-            <td>天干地支</td>
-            <td>行星 + 星座</td>
-          </tr>
-          <tr>
-            <td>宮位數</td>
-            <td>12 宮</td>
-            <td>-</td>
-            <td>12 宮</td>
-          </tr>
-          <tr>
-            <td>特色</td>
-            <td>視覺化命盤</td>
-            <td>五行生剋</td>
-            <td>行星相位</td>
-          </tr>
-        </tbody>
-      </table>
+      <div className="not-prose overflow-x-auto my-4">
+        <table className="w-full border-collapse border border-primary/20">
+          <thead>
+            <tr className="bg-cream">
+              <th className="border border-primary/20 px-4 py-2 text-left">項目</th>
+              <th className="border border-primary/20 px-4 py-2 text-left">紫微斗數</th>
+              <th className="border border-primary/20 px-4 py-2 text-left">八字</th>
+              <th className="border border-primary/20 px-4 py-2 text-left">西洋占星</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border border-primary/20 px-4 py-2">基礎</td>
+              <td className="border border-primary/20 px-4 py-2">星曜 + 宮位</td>
+              <td className="border border-primary/20 px-4 py-2">天干地支</td>
+              <td className="border border-primary/20 px-4 py-2">行星 + 星座</td>
+            </tr>
+            <tr className="bg-cream/50">
+              <td className="border border-primary/20 px-4 py-2">宮位數</td>
+              <td className="border border-primary/20 px-4 py-2">12 宮</td>
+              <td className="border border-primary/20 px-4 py-2">-</td>
+              <td className="border border-primary/20 px-4 py-2">12 宮</td>
+            </tr>
+            <tr>
+              <td className="border border-primary/20 px-4 py-2">特色</td>
+              <td className="border border-primary/20 px-4 py-2">視覺化命盤</td>
+              <td className="border border-primary/20 px-4 py-2">五行生剋</td>
+              <td className="border border-primary/20 px-4 py-2">行星相位</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
 
       <h3 className="font-serif text-xl text-primary/80">紫微斗數的特點</h3>
       <ul>
@@ -262,29 +262,31 @@ function TransformationsContent() {
       </div>
 
       <h3 className="font-serif text-xl text-primary/80">四化速查表</h3>
-      <table className="w-full">
-        <thead>
-          <tr>
-            <th>年干</th>
-            <th>化祿</th>
-            <th>化權</th>
-            <th>化科</th>
-            <th>化忌</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr><td>甲</td><td>廉貞</td><td>破軍</td><td>武曲</td><td>太陽</td></tr>
-          <tr><td>乙</td><td>天機</td><td>天梁</td><td>紫微</td><td>太陰</td></tr>
-          <tr><td>丙</td><td>天同</td><td>天機</td><td>文昌</td><td>廉貞</td></tr>
-          <tr><td>丁</td><td>太陰</td><td>天同</td><td>天機</td><td>巨門</td></tr>
-          <tr><td>戊</td><td>貪狼</td><td>太陰</td><td>右弼</td><td>天機</td></tr>
-          <tr><td>己</td><td>武曲</td><td>貪狼</td><td>天梁</td><td>文曲</td></tr>
-          <tr><td>庚</td><td>太陽</td><td>武曲</td><td>太陰</td><td>天同</td></tr>
-          <tr><td>辛</td><td>巨門</td><td>太陽</td><td>文曲</td><td>文昌</td></tr>
-          <tr><td>壬</td><td>天梁</td><td>紫微</td><td>左輔</td><td>武曲</td></tr>
-          <tr><td>癸</td><td>破軍</td><td>巨門</td><td>太陰</td><td>貪狼</td></tr>
-        </tbody>
-      </table>
+      <div className="not-prose overflow-x-auto my-4">
+        <table className="w-full border-collapse border border-primary/20">
+          <thead>
+            <tr className="bg-cream">
+              <th className="border border-primary/20 px-4 py-2 text-left">年干</th>
+              <th className="border border-primary/20 px-4 py-2 text-left text-green-700">化祿</th>
+              <th className="border border-primary/20 px-4 py-2 text-left text-orange-700">化權</th>
+              <th className="border border-primary/20 px-4 py-2 text-left text-blue-700">化科</th>
+              <th className="border border-primary/20 px-4 py-2 text-left text-red-700">化忌</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td className="border border-primary/20 px-4 py-2 font-medium">甲</td><td className="border border-primary/20 px-4 py-2">廉貞</td><td className="border border-primary/20 px-4 py-2">破軍</td><td className="border border-primary/20 px-4 py-2">武曲</td><td className="border border-primary/20 px-4 py-2">太陽</td></tr>
+            <tr className="bg-cream/50"><td className="border border-primary/20 px-4 py-2 font-medium">乙</td><td className="border border-primary/20 px-4 py-2">天機</td><td className="border border-primary/20 px-4 py-2">天梁</td><td className="border border-primary/20 px-4 py-2">紫微</td><td className="border border-primary/20 px-4 py-2">太陰</td></tr>
+            <tr><td className="border border-primary/20 px-4 py-2 font-medium">丙</td><td className="border border-primary/20 px-4 py-2">天同</td><td className="border border-primary/20 px-4 py-2">天機</td><td className="border border-primary/20 px-4 py-2">文昌</td><td className="border border-primary/20 px-4 py-2">廉貞</td></tr>
+            <tr className="bg-cream/50"><td className="border border-primary/20 px-4 py-2 font-medium">丁</td><td className="border border-primary/20 px-4 py-2">太陰</td><td className="border border-primary/20 px-4 py-2">天同</td><td className="border border-primary/20 px-4 py-2">天機</td><td className="border border-primary/20 px-4 py-2">巨門</td></tr>
+            <tr><td className="border border-primary/20 px-4 py-2 font-medium">戊</td><td className="border border-primary/20 px-4 py-2">貪狼</td><td className="border border-primary/20 px-4 py-2">太陰</td><td className="border border-primary/20 px-4 py-2">右弼</td><td className="border border-primary/20 px-4 py-2">天機</td></tr>
+            <tr className="bg-cream/50"><td className="border border-primary/20 px-4 py-2 font-medium">己</td><td className="border border-primary/20 px-4 py-2">武曲</td><td className="border border-primary/20 px-4 py-2">貪狼</td><td className="border border-primary/20 px-4 py-2">天梁</td><td className="border border-primary/20 px-4 py-2">文曲</td></tr>
+            <tr><td className="border border-primary/20 px-4 py-2 font-medium">庚</td><td className="border border-primary/20 px-4 py-2">太陽</td><td className="border border-primary/20 px-4 py-2">武曲</td><td className="border border-primary/20 px-4 py-2">太陰</td><td className="border border-primary/20 px-4 py-2">天同</td></tr>
+            <tr className="bg-cream/50"><td className="border border-primary/20 px-4 py-2 font-medium">辛</td><td className="border border-primary/20 px-4 py-2">巨門</td><td className="border border-primary/20 px-4 py-2">太陽</td><td className="border border-primary/20 px-4 py-2">文曲</td><td className="border border-primary/20 px-4 py-2">文昌</td></tr>
+            <tr><td className="border border-primary/20 px-4 py-2 font-medium">壬</td><td className="border border-primary/20 px-4 py-2">天梁</td><td className="border border-primary/20 px-4 py-2">紫微</td><td className="border border-primary/20 px-4 py-2">左輔</td><td className="border border-primary/20 px-4 py-2">武曲</td></tr>
+            <tr className="bg-cream/50"><td className="border border-primary/20 px-4 py-2 font-medium">癸</td><td className="border border-primary/20 px-4 py-2">破軍</td><td className="border border-primary/20 px-4 py-2">巨門</td><td className="border border-primary/20 px-4 py-2">太陰</td><td className="border border-primary/20 px-4 py-2">貪狼</td></tr>
+          </tbody>
+        </table>
+      </div>
     </article>
   )
 }

@@ -17,10 +17,8 @@ export function About() {
 
         <h2 className="font-serif text-2xl text-primary mt-8">核心特色</h2>
         <ul>
-          <li><strong>真太陽時校正</strong> - 還原古法精準時辰計算</li>
           <li><strong>AI 命理諮詢</strong> - 8 種風格命理師任選</li>
           <li><strong>完整科普教學</strong> - 新手也能看懂</li>
-          <li><strong>三語系支援</strong> - 繁中、簡中、英文</li>
           <li><strong>隱私保護</strong> - 資料不上傳，完全本地運算</li>
         </ul>
 
@@ -28,15 +26,16 @@ export function About() {
         <p>
           本專案採用 MIT 授權，歡迎貢獻與使用。
         </p>
-
-        <h2 className="font-serif text-2xl text-primary mt-8">技術棧</h2>
-        <ul>
-          <li>React + TypeScript</li>
-          <li>Tailwind CSS</li>
-          <li>Vite</li>
-          <li>i18next</li>
-          <li>Zustand</li>
-        </ul>
+        <p>
+          <a
+            href="https://github.com/ka1hung/PurpleStar"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-primary hover:text-primary-dark underline"
+          >
+            GitHub 專案頁面
+          </a>
+        </p>
       </div>
     </div>
   )

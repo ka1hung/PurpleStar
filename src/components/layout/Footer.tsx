@@ -22,7 +22,7 @@ export function Footer() {
               </span>
             </div>
             <p className="text-cream/60 max-w-md">
-              免費紫微斗數命盤計算工具，支援真太陽時校正，8 種 AI 命理師風格。
+              免費紫微斗數命盤計算工具，8 種 AI 命理師風格。
               純本地運算，資料不上傳，隱私有保障。
             </p>
           </div>
@@ -70,7 +70,7 @@ export function Footer() {
               </li>
               <li>
                 <a
-                  href="https://github.com"
+                  href="https://github.com/ka1hung/PurpleStar"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-gold transition-colors flex items-center space-x-1"

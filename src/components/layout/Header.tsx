@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
-import { useAppStore } from '../../store'
-import { LanguageSwitcher } from './LanguageSwitcher'
 
 export function Header() {
   const { t } = useTranslation()
@@ -73,8 +71,6 @@ export function Header() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </Link>
-
-            <LanguageSwitcher />
 
             {/* Mobile menu button */}
             <button

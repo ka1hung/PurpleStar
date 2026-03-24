@@ -7,11 +7,6 @@ export function Home() {
 
   const features = [
     {
-      icon: '🎯',
-      titleKey: 'home.features.trueSolarTime.title',
-      descKey: 'home.features.trueSolarTime.desc',
-    },
-    {
       icon: '🤖',
       titleKey: 'home.features.aiMasters.title',
       descKey: 'home.features.aiMasters.desc',
@@ -84,35 +79,6 @@ export function Home() {
                 <p className="text-ink/60">{t(feature.descKey)}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* True Solar Time Section */}
-      <section className="py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="font-serif text-3xl md:text-4xl text-primary mb-6">
-            真太陽時校正
-          </h2>
-          <p className="text-lg text-ink/70 mb-8">
-            古人用日晷計時，現代人用時區標準時間——這個差異可能讓您的命宮偏移一整個時辰。
-            紫微星盤會依據您的出生地經度，自動計算真太陽時，還原最準確的命盤。
-          </p>
-          <div className="bg-white/80 rounded-lg p-8 border border-gold/30">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-              <div>
-                <div className="text-3xl font-serif text-gold mb-2">121°E</div>
-                <div className="text-sm text-ink/60">台北經度</div>
-              </div>
-              <div>
-                <div className="text-3xl font-serif text-gold mb-2">87°E</div>
-                <div className="text-sm text-ink/60">烏魯木齊經度</div>
-              </div>
-              <div>
-                <div className="text-3xl font-serif text-primary mb-2">2h 16m</div>
-                <div className="text-sm text-ink/60">時差可達</div>
-              </div>
-            </div>
           </div>
         </div>
       </section>

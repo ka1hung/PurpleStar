@@ -115,7 +115,6 @@ export interface ChatSession {
 
 // Settings
 export interface Settings {
-  language: 'zh-TW' | 'zh-CN' | 'en'
   theme: 'light' | 'dark'
   // AI Settings
   apiEndpoint?: string

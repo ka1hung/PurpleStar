@@ -48,7 +48,6 @@ export const useAppStore = create<AppState>()(
 
       // Settings
       settings: {
-        language: 'zh-TW',
         theme: 'light',
         apiEndpoint: 'https://api.openai.com/v1',
         apiKey: '',
