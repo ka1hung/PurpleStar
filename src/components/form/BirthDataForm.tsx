@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../common/Button'
-import { cities } from '../../lib/cities'
-import type { BirthData, City } from '../../types'
+import type { BirthData } from '../../types'
 
 interface BirthDataFormProps {
   onSubmit: (data: BirthData) => void
@@ -20,9 +19,6 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
   const [birthMonth, setBirthMonth] = useState('1')
   const [birthDay, setBirthDay] = useState('1')
   const [birthHour, setBirthHour] = useState('11')
-  const [selectedCity, setSelectedCity] = useState<City | null>(null)
-  const [useTrueSolarTime, setUseTrueSolarTime] = useState(true)
-  const [errors, setErrors] = useState<string[]>([])
 
   // Generate year options (1900 to current year)
   const yearOptions = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i)
@@ -56,24 +52,9 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
     { value: '23', label: '子時晚 (23:00-23:59)' },
   ]
 
-  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const cityName = e.target.value
-    const city = cities.find(c => c.name === cityName) || null
-    setSelectedCity(city)
-  }
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
 
-    const newErrors: string[] = []
-    if (!selectedCity) newErrors.push('請選擇出生地點')
-
-    if (newErrors.length > 0) {
-      setErrors(newErrors)
-      return
-    }
-
-    setErrors([])
     const year = Number(birthYear)
     const month = Number(birthMonth)
     const day = Number(birthDay)
@@ -83,9 +64,6 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
       gender,
       birthDate: new Date(year, month - 1, day),
       birthTime: `${birthHour}:00`,
-      birthPlace: selectedCity!.name,
-      longitude: selectedCity!.longitude,
-      timezone: selectedCity!.timezone,
     }
 
     onSubmit(data)
@@ -221,99 +199,6 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
           ))}
         </select>
       </div>
-
-      {/* Birth Place */}
-      <div>
-        <label className="block text-sm font-medium text-ink mb-1">
-          {t('calculator.form.birthPlace')}
-        </label>
-        <select
-          value={selectedCity?.name || ''}
-          onChange={handleCityChange}
-          className="w-full px-4 py-2 border border-primary/20 rounded-classical
-                     focus:outline-none focus:ring-2 focus:ring-primary/30
-                     bg-white"
-        >
-          <option value="">-- 請選擇出生地 --</option>
-          <optgroup label="台灣">
-            {cities.filter(c => c.country === 'Taiwan').map(city => (
-              <option key={city.name} value={city.name}>
-                {city.name} ({city.nameEn})
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="中國大陸">
-            {cities.filter(c => c.country === 'China').map(city => (
-              <option key={city.name} value={city.name}>
-                {city.name} ({city.nameEn})
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="港澳">
-            {cities.filter(c => c.country === 'Hong Kong' || c.country === 'Macau').map(city => (
-              <option key={city.name} value={city.name}>
-                {city.name} ({city.nameEn})
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="東南亞">
-            {cities.filter(c => ['Singapore', 'Malaysia', 'Thailand', 'Indonesia', 'Vietnam', 'Philippines'].includes(c.country)).map(city => (
-              <option key={city.name} value={city.name}>
-                {city.name} ({city.nameEn})
-              </option>
-            ))}
-          </optgroup>
-          <optgroup label="其他地區">
-            {cities.filter(c => ['Japan', 'South Korea', 'USA', 'Canada', 'UK', 'France', 'Australia'].includes(c.country)).map(city => (
-              <option key={city.name} value={city.name}>
-                {city.name} ({city.nameEn})
-              </option>
-            ))}
-          </optgroup>
-        </select>
-
-        {/* Selected city info */}
-        {selectedCity && (
-          <p className="text-xs text-ink/50 mt-1">
-            經度: {selectedCity.longitude.toFixed(4)}° · 時區: UTC{selectedCity.timezone >= 0 ? '+' : ''}{selectedCity.timezone}
-          </p>
-        )}
-      </div>
-
-      {/* True Solar Time Toggle */}
-      <div className="flex items-center justify-between p-4 bg-gold/10 rounded-classical">
-        <div>
-          <p className="font-medium text-ink">{t('calculator.solarTime.title')}</p>
-          <p className="text-sm text-ink/60">
-            依出生地經度校正真太陽時
-          </p>
-        </div>
-        <label className="relative inline-flex items-center cursor-pointer">
-          <input
-            type="checkbox"
-            checked={useTrueSolarTime}
-            onChange={(e) => setUseTrueSolarTime(e.target.checked)}
-            className="sr-only peer"
-          />
-          <div className="w-11 h-6 bg-ink/20 peer-focus:outline-none peer-focus:ring-2
-                          peer-focus:ring-primary/30 rounded-full peer
-                          peer-checked:after:translate-x-full peer-checked:after:border-white
-                          after:content-[''] after:absolute after:top-[2px] after:left-[2px]
-                          after:bg-white after:rounded-full after:h-5 after:w-5
-                          after:transition-all peer-checked:bg-primary" />
-        </label>
-      </div>
-
-      {/* Error Messages */}
-      {errors.length > 0 && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-classical">
-          <ul className="text-red-700 text-sm space-y-1">
-            {errors.map((error, i) => (
-              <li key={i}>{error}</li>
-            ))}
-          </ul>
-        </div>
-      )}
 
       {/* Submit Button */}
       <Button

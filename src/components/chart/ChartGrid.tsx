@@ -9,36 +9,31 @@ interface ChartGridProps {
 
 /**
  * The traditional Zi Wei Dou Shu chart layout:
+ * Using earthly branch indices (0-based): 子=0, 丑=1, 寅=2, ...
  *
- *     巳(4)   午(5)   未(6)   申(7)
- *     辰(3)   [CENTER INFO]   酉(8)
- *     卯(2)   [CENTER INFO]   戌(9)
- *     寅(1)   丑(12)  子(11)  亥(10)
- *
- * Position mapping (1-12 clockwise from 寅):
- * Top row: 4, 5, 6, 7
- * Middle rows: 3, center, center, 8
- *              2, center, center, 9
- * Bottom row: 1, 12, 11, 10
+ *     巳(5)   午(6)   未(7)   申(8)
+ *     辰(4)   [CENTER INFO]   酉(9)
+ *     卯(3)   [CENTER INFO]   戌(10)
+ *     寅(2)   丑(1)   子(0)   亥(11)
  */
 export function ChartGrid({ chart }: ChartGridProps) {
   const { t } = useTranslation()
 
-  // Get palace by position (1-12)
+  // Get palace by position (0-11 earthly branch index)
   const getPalace = (position: number): Palace | undefined => {
     return chart.palaces.find(p => p.position === position)
   }
 
-  // Layout positions for the grid
+  // Layout positions for the grid (earthly branch indices 0-11)
   const gridLayout = [
-    // Row 1 (top): positions 4, 5, 6, 7
-    [4, 5, 6, 7],
-    // Row 2: position 3, center, center, 8
-    [3, 'center-tl', 'center-tr', 8],
-    // Row 3: position 2, center, center, 9
-    [2, 'center-bl', 'center-br', 9],
-    // Row 4 (bottom): positions 1, 12, 11, 10
-    [1, 12, 11, 10],
+    // Row 1 (top): 巳午未申
+    [5, 6, 7, 8],
+    // Row 2: 辰, center, center, 酉
+    [4, 'center-tl', 'center-tr', 9],
+    // Row 3: 卯, center, center, 戌
+    [3, 'center-bl', 'center-br', 10],
+    // Row 4 (bottom): 寅丑子亥
+    [2, 1, 0, 11],
   ]
 
   const isLifePalace = (position: number) => position === chart.lifePalacePosition

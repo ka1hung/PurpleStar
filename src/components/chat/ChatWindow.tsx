@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useAppStore } from '../../store'
 import { MasterSelector } from './MasterSelector'
+import { MarkdownContent } from './MarkdownContent'
 import { getMasterById } from '../../data/prompts'
 import {
   sendChatMessage,
@@ -24,21 +25,34 @@ export function ChatWindow({ chart }: ChatWindowProps) {
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [streamingText, setStreamingText] = useState('')
+  const [showMasterSelector, setShowMasterSelector] = useState(false)
 
   // Check if API is configured
   const isApiConfigured = settings.apiEndpoint && settings.apiKey && settings.apiModel
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const [showScrollButton, setShowScrollButton] = useState(false)
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages, streamingText])
+  // Check if user has scrolled up
+  const handleScroll = () => {
+    if (messagesContainerRef.current) {
+      const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
+      const isNearBottom = scrollHeight - scrollTop - clientHeight < 100
+      setShowScrollButton(!isNearBottom)
+    }
+  }
 
   const master = getMasterById(selectedMaster)
+
+  const handleSelectMaster = (masterId: typeof selectedMaster) => {
+    setSelectedMaster(masterId)
+    setShowMasterSelector(false)
+  }
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return
@@ -126,19 +140,44 @@ export function ChatWindow({ chart }: ChatWindowProps) {
 
   return (
     <div className="bg-white rounded-lg shadow-classical overflow-hidden">
-      {/* Master selector */}
-      <div className="p-4 border-b border-primary/10">
-        <h3 className="font-serif text-lg text-primary mb-3">
-          {t('chat.selectMaster')}
-        </h3>
-        <MasterSelector
-          selectedMaster={selectedMaster}
-          onSelect={setSelectedMaster}
-        />
+      {/* Master selector - collapsible */}
+      <div className="border-b border-primary/10">
+        <button
+          onClick={() => setShowMasterSelector(!showMasterSelector)}
+          className="w-full p-4 flex items-center justify-between hover:bg-cream/50 transition-colors"
+        >
+          <div className="flex items-center gap-3">
+            <span className="text-2xl">{master.avatar}</span>
+            <div className="text-left">
+              <p className="font-medium text-ink">{t(master.nameKey)}</p>
+              <p className="text-xs text-ink/50">{t(master.descKey)}</p>
+            </div>
+          </div>
+          <svg
+            className={`w-5 h-5 text-ink/40 transition-transform ${showMasterSelector ? 'rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
+        </button>
+        {showMasterSelector && (
+          <div className="px-4 pb-4">
+            <MasterSelector
+              selectedMaster={selectedMaster}
+              onSelect={handleSelectMaster}
+            />
+          </div>
+        )}
       </div>
 
       {/* Chat messages */}
-      <div className="h-96 overflow-y-auto p-4 space-y-4 bg-cream/30">
+      <div className="relative">
+        <div
+          ref={messagesContainerRef}
+          onScroll={handleScroll}
+          className="h-96 overflow-y-auto p-4 space-y-4 bg-cream/30">
         {messages.length === 0 && !streamingText && (
           <div className="text-center py-8">
             <div className="text-5xl mb-4">{master.avatar}</div>
@@ -187,7 +226,11 @@ export function ChatWindow({ chart }: ChatWindowProps) {
                   </span>
                 </div>
               )}
-              <p className="whitespace-pre-wrap">{message.content}</p>
+              {message.role === 'assistant' ? (
+                <MarkdownContent content={message.content} />
+              ) : (
+                <p className="whitespace-pre-wrap">{message.content}</p>
+              )}
             </div>
           </div>
         ))}
@@ -202,7 +245,7 @@ export function ChatWindow({ chart }: ChatWindowProps) {
                   {t(master.nameKey)}
                 </span>
               </div>
-              <p className="whitespace-pre-wrap">{streamingText}</p>
+              <MarkdownContent content={streamingText} />
             </div>
           </div>
         )}
@@ -224,7 +267,22 @@ export function ChatWindow({ chart }: ChatWindowProps) {
           </div>
         )}
 
-        <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
+        </div>
+
+        {/* Scroll to bottom button - sticky at bottom right of chat area */}
+        {showScrollButton && (
+          <button
+            onClick={scrollToBottom}
+            className="absolute bottom-4 right-4 p-3 bg-primary text-cream rounded-full shadow-lg
+                       hover:bg-primary-dark transition-all z-10"
+            title="滾動到最新訊息"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Input */}

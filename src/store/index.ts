@@ -50,7 +50,6 @@ export const useAppStore = create<AppState>()(
       settings: {
         language: 'zh-TW',
         theme: 'light',
-        trueSolarTimeEnabled: true,
         apiEndpoint: 'https://api.openai.com/v1',
         apiKey: '',
         apiModel: 'gpt-4o-mini',

@@ -1,48 +1,106 @@
 import type { Chart, MasterType } from '../types'
 import { getMasterById } from '../data/prompts'
+import { getHoroscope } from './ziwei'
 
 /**
  * Format chart data for AI context
  */
 export function formatChartForAI(chart: Chart): string {
-  const { birthData, lunarDate, fiveElement, palaces, trueSolarTime } = chart
+  const { birthData, lunarDate, fiveElement, palaces, mingZhu, shenZhu, zodiac } = chart
 
   // Find life palace
   const lifePalace = palaces.find(p => p.name === '命宮')
   const lifePalaceStars = lifePalace
     ? [
-        ...lifePalace.mainStars.map(s => s.name + (s.transformation ? `(${s.transformation})` : '')),
-        ...lifePalace.auxiliaryStars.map(s => s.name),
+        ...lifePalace.mainStars.map(s => s.name + (s.brightness ? `(${s.brightness})` : '') + (s.transformation ? `[${s.transformation}]` : '')),
+        ...lifePalace.auxiliaryStars.map(s => s.name + (s.transformation ? `[${s.transformation}]` : '')),
       ].join('、')
     : '無'
 
-  // Build palace summary
+  // Build palace summary with brightness
   const palaceSummary = palaces
     .map(p => {
-      const stars = [
-        ...p.mainStars.map(s => s.name + (s.transformation ? `(${s.transformation})` : '')),
-        ...p.auxiliaryStars.map(s => s.name),
-        ...p.harmfulStars.map(s => s.name),
-      ].join('、')
-      return `${p.name}(${p.branch}): ${stars || '空宮'}`
+      const mainStars = p.mainStars.map(s =>
+        s.name + (s.brightness ? `(${s.brightness})` : '') + (s.transformation ? `[${s.transformation}]` : '')
+      )
+      const auxStars = p.auxiliaryStars.map(s => s.name + (s.transformation ? `[${s.transformation}]` : ''))
+      const harmStars = p.harmfulStars.map(s => s.name)
+      const stars = [...mainStars, ...auxStars, ...harmStars].join('、')
+
+      // Add decadal info
+      const decadalInfo = p.decadal ? ` [大限${p.decadal.range[0]}-${p.decadal.range[1]}歲]` : ''
+      return `${p.name}(${p.stem}${p.branch})${decadalInfo}: ${stars || '空宮'}`
     })
     .join('\n')
+
+  // Get current horoscope (流年)
+  const horoscopeInfo = formatHoroscope(chart)
 
   return `
 【命盤資料】
 姓名：${birthData.name || '未提供'}
 性別：${birthData.gender === 'male' ? '男' : '女'}
-出生時間：${new Date(birthData.birthDate).toLocaleDateString('zh-TW')} ${trueSolarTime.corrected}（已真太陽時校正）
-農曆：${lunarDate.yearGanZhi}年 ${lunarDate.month}月 ${lunarDate.day}日 ${lunarDate.hourGanZhi}
-出生地：${birthData.birthPlace}
+生肖：${zodiac || '未知'}
+出生時間：${new Date(birthData.birthDate).toLocaleDateString('zh-TW')} ${chart.time || ''}時
+農曆：${lunarDate.yearGanZhi}年 ${lunarDate.month}月 ${lunarDate.day}日 ${lunarDate.hourGanZhi}時
 五行局：${fiveElement}
+命主：${mingZhu || '未知'}
+身主：${shenZhu || '未知'}
 
 【命宮主星】
 ${lifePalaceStars}
 
 【十二宮概覽】
 ${palaceSummary}
+
+${horoscopeInfo}
 `.trim()
+}
+
+/**
+ * Format horoscope (運限) data for AI
+ */
+function formatHoroscope(chart: Chart): string {
+  try {
+    const horoscope = getHoroscope(chart)
+    if (!horoscope) return '【流年運勢】\n無法取得流年資料'
+
+    const { decadal, age, yearly, monthly } = horoscope
+
+    // Format decadal (大限)
+    const decadalInfo = decadal ? `
+【當前大限】
+大限宮位：${decadal.name}（${decadal.heavenlyStem}${decadal.earthlyBranch}）
+大限四化：${decadal.mutagen?.join('、') || '無'}
+大限十二宮：${decadal.palaceNames?.join('→') || ''}` : ''
+
+    // Format yearly (流年)
+    const yearlyInfo = yearly ? `
+【${new Date().getFullYear()}年流年】
+流年宮位：${yearly.name}（${yearly.heavenlyStem}${yearly.earthlyBranch}）
+流年四化：${yearly.mutagen?.join('、') || '無'}
+流年十二宮：${yearly.palaceNames?.join('→') || ''}` : ''
+
+    // Format age (小限)
+    const ageInfo = age ? `
+【小限】
+虛歲：${age.nominalAge}歲
+小限宮位：${age.name}（${age.heavenlyStem}${age.earthlyBranch}）` : ''
+
+    // Format monthly (流月) - current month
+    const monthlyInfo = monthly ? `
+【本月流月】
+流月宮位：${monthly.name}（${monthly.heavenlyStem}${monthly.earthlyBranch}）
+流月四化：${monthly.mutagen?.join('、') || '無'}` : ''
+
+    return `${decadalInfo}
+${yearlyInfo}
+${ageInfo}
+${monthlyInfo}`.trim()
+  } catch (error) {
+    console.error('Error formatting horoscope:', error)
+    return '【流年運勢】\n流年計算發生錯誤'
+  }
 }
 
 /**
@@ -51,18 +109,34 @@ ${palaceSummary}
 export function buildSystemPrompt(masterId: MasterType, chartContext: string): string {
   const master = getMasterById(masterId)
 
+  // Get current date info
+  const now = new Date()
+  const dateStr = now.toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+  })
+
   return `${master.prompt}
 
-你現在正在為一位問命者解讀紫微斗數命盤。以下是他/她的命盤資料：
+【今天日期】${dateStr}
+
+你現在正在為一位問命者解讀紫微斗數命盤。以下是他/她的命盤資料及當前運勢：
 
 ${chartContext}
 
-請根據以上命盤資料，以你的風格為問命者解答問題。
-記住：
+請根據以上命盤資料與流年運勢，以你的風格為問命者解答問題。
+
+【解盤要點】
 1. 始終保持你的角色風格
-2. 基於命盤資料給出有依據的分析
-3. 適時提醒命理僅供參考
-4. 對於健康、法律、投資等敏感問題，要提醒諮詢專業人士
+2. 結合「本命盤」與「流年運勢」來分析，讓解讀更精準
+3. 回答時說明是「本命特質」還是「流年影響」
+4. 注意大限、流年、小限的疊加效應
+5. 主星亮度(廟/旺/得/利/平/陷)會影響星曜發揮
+6. 四化(祿權科忌)是重要的吉凶指標
+7. 適時提醒命理僅供參考，人生掌握在自己手中
+8. 對於健康、法律、投資等敏感問題，要提醒諮詢專業人士
 `
 }
 
@@ -178,12 +252,12 @@ export async function sendChatMessage(
  * Suggested questions for users
  */
 export const suggestedQuestions = [
-  '我的事業運如何？',
-  '今年感情有什麼要注意的？',
-  '我適合什麼類型的工作？',
-  '我的財運什麼時候會比較好？',
-  '我的個性有什麼優缺點？',
-  '幫我分析我的命盤格局',
-  '我的大限走到哪了？',
-  '我跟另一半合適嗎？',
+  '分析我今年的整體運勢',
+  '今年事業有什麼機會或挑戰？',
+  '今年感情運勢如何？',
+  '今年財運什麼時候最好？',
+  '我目前走的大限好不好？',
+  '幫我分析命盤格局特色',
+  '我的個性優缺點是什麼？',
+  '適合我的職業方向？',
 ]

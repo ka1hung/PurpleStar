@@ -1,62 +1,63 @@
 /**
  * Palace positioning and Five Element calculation
+ * Based on ziwei_tool_spec.md
  */
 
-import { PALACE_BRANCHES, EARTHLY_BRANCHES, HEAVENLY_STEMS, PALACE_NAMES } from './constants'
+import {
+  EARTHLY_BRANCHES,
+  HEAVENLY_STEMS,
+  NAYIN_TABLE,
+  FIVE_ELEMENTS,
+  PALACE_NAMES,
+  MINGZHU_TABLE,
+  SHENZHU_TABLE,
+} from './constants'
 
 /**
  * Calculate Life Palace position (命宮)
- * Based on lunar month and hour
+ * 口訣：寅宮起正月，逆數至生月，再順數生時
  *
- * Formula: Start from 寅 (position 1), count months forward, then count hours backward
+ * @param lunarMonth - Lunar month (1-12)
+ * @param hourIndex - Hour index (0=子, 1=丑, 2=寅, ...)
+ * @returns Palace position as earthly branch index (0=子, 1=丑, 2=寅, ...)
  */
-export function getLifePalacePosition(lunarMonth: number, hourIndex: number): number {
-  // Start from 寅宮 (index 0 in PALACE_BRANCHES, which represents position 1)
-  // Add (month - 1) to get to the starting position
-  // Then subtract hourIndex
+export function calcMingGong(lunarMonth: number, hourIndex: number): number {
+  // Step 1: 從寅宮(index=2)逆數 (lunarMonth - 1) 步
+  // 寅=2, going backward: 2 -> 1 -> 0 -> 11 -> 10 -> ...
+  const monthPosition = (2 - (lunarMonth - 1) + 12) % 12
 
-  // Month counting: 正月(1) starts at 寅, 二月(2) at 卯, etc.
-  // Hour counting: 子時(0) goes back 0, 丑時(1) goes back 1, etc.
+  // Step 2: 再順數生時 (hourIndex) 步
+  const mingGong = (monthPosition + hourIndex) % 12
 
-  let position = (lunarMonth - 1) - hourIndex
-
-  // Normalize to 0-11 range
-  while (position < 0) position += 12
-  position = position % 12
-
-  // Convert to 1-12 range
-  return position + 1
+  return mingGong
 }
 
 /**
  * Calculate Body Palace position (身宮)
- * Based on lunar month and hour
+ * 口訣：寅宮起正月，順數至生月，再順數生時
+ * (與命宮類似，但月份是順數而非逆數)
  *
- * Formula: Start from 寅, count months forward, then count hours forward
+ * @param lunarMonth - Lunar month (1-12)
+ * @param hourIndex - Hour index (0=子, 1=丑, 2=寅, ...)
+ * @returns Body palace position (0-11)
  */
-export function getBodyPalacePosition(lunarMonth: number, hourIndex: number): number {
-  // Similar to life palace but hours count forward
-  let position = (lunarMonth - 1) + hourIndex
-
-  // Normalize to 0-11 range
-  position = position % 12
-
-  // Convert to 1-12 range
-  return position + 1
+export function calcShenGong(lunarMonth: number, hourIndex: number): number {
+  // 從寅宮(2)順數(月-1)步，再順數時辰步
+  const monthPosition = (2 + (lunarMonth - 1)) % 12
+  const shenGong = (monthPosition + hourIndex) % 12
+  return shenGong
 }
 
 /**
- * Calculate Five Element (五行局)
- * Using 五虎遁 to get life palace's heavenly stem, then lookup 納音
+ * Get the heavenly stem for the life palace using 五虎遁
+ * 甲己年寅宮起丙, 乙庚年寅宮起戊, 丙辛年寅宮起庚, 丁壬年寅宮起壬, 戊癸年寅宮起甲
+ *
+ * @param yearStem - Year's heavenly stem
+ * @param palaceIndex - Palace's earthly branch index (0-11)
+ * @returns Palace's heavenly stem
  */
-export function getFiveElement(
-  yearStem: string,
-  lifePalacePosition: number
-): string {
-  const palaceBranch = PALACE_BRANCHES[lifePalacePosition - 1]
-
-  // Step 1: 五虎遁 - find life palace's heavenly stem
-  // 甲己年寅宮起丙, 乙庚年寅宮起戊, 丙辛年寅宮起庚, 丁壬年寅宮起壬, 戊癸年寅宮起甲
+export function calcPalaceTianGan(yearStem: string, palaceIndex: number): string {
+  // 五虎遁起始天干 (寅宮的天干)
   const wuhuStart: Record<string, number> = {
     '甲': 2, '己': 2,  // 丙
     '乙': 4, '庚': 4,  // 戊
@@ -65,126 +66,115 @@ export function getFiveElement(
     '戊': 0, '癸': 0,  // 甲
   }
 
-  const startStemIndex = wuhuStart[yearStem] ?? 0
-  // PALACE_BRANCHES starts from 寅, so position offset from 寅
-  const palaceStemIndex = (startStemIndex + lifePalacePosition - 1) % 10
-  const palaceStem = HEAVENLY_STEMS[palaceStemIndex]
+  const startIndex = wuhuStart[yearStem] ?? 0
+  // 從寅宮(index=2)開始，計算到目標宮位的天干
+  const offset = (palaceIndex - 2 + 12) % 12
+  const stemIndex = (startIndex + offset) % 10
 
-  // Step 2: Get 納音五行 from stem+branch combination
-  // 納音表 maps stem+branch to five element
-  const nayinTable: Record<string, string> = {
-    // 甲子乙丑 海中金
-    '甲子': '金四局', '乙丑': '金四局',
-    // 丙寅丁卯 爐中火
-    '丙寅': '火六局', '丁卯': '火六局',
-    // 戊辰己巳 大林木
-    '戊辰': '木三局', '己巳': '木三局',
-    // 庚午辛未 路旁土
-    '庚午': '土五局', '辛未': '土五局',
-    // 壬申癸酉 劍鋒金
-    '壬申': '金四局', '癸酉': '金四局',
-    // 甲戌乙亥 山頭火
-    '甲戌': '火六局', '乙亥': '火六局',
-    // 丙子丁丑 澗下水
-    '丙子': '水二局', '丁丑': '水二局',
-    // 戊寅己卯 城頭土
-    '戊寅': '土五局', '己卯': '土五局',
-    // 庚辰辛巳 白蠟金
-    '庚辰': '金四局', '辛巳': '金四局',
-    // 壬午癸未 楊柳木
-    '壬午': '木三局', '癸未': '木三局',
-    // 甲申乙酉 泉中水
-    '甲申': '水二局', '乙酉': '水二局',
-    // 丙戌丁亥 屋上土
-    '丙戌': '土五局', '丁亥': '土五局',
-    // 戊子己丑 霹靂火
-    '戊子': '火六局', '己丑': '火六局',
-    // 庚寅辛卯 松柏木
-    '庚寅': '木三局', '辛卯': '木三局',
-    // 壬辰癸巳 長流水
-    '壬辰': '水二局', '癸巳': '水二局',
-    // 甲午乙未 砂中金
-    '甲午': '金四局', '乙未': '金四局',
-    // 丙申丁酉 山下火
-    '丙申': '火六局', '丁酉': '火六局',
-    // 戊戌己亥 平地木
-    '戊戌': '木三局', '己亥': '木三局',
-    // 庚子辛丑 壁上土
-    '庚子': '土五局', '辛丑': '土五局',
-    // 壬寅癸卯 金箔金
-    '壬寅': '金四局', '癸卯': '金四局',
-    // 甲辰乙巳 覆燈火
-    '甲辰': '火六局', '乙巳': '火六局',
-    // 丙午丁未 天河水
-    '丙午': '水二局', '丁未': '水二局',
-    // 戊申己酉 大驛土
-    '戊申': '土五局', '己酉': '土五局',
-    // 庚戌辛亥 釵釧金
-    '庚戌': '金四局', '辛亥': '金四局',
-    // 壬子癸丑 桑柘木
-    '壬子': '木三局', '癸丑': '木三局',
-    // 甲寅乙卯 大溪水
-    '甲寅': '水二局', '乙卯': '水二局',
-    // 丙辰丁巳 沙中土
-    '丙辰': '土五局', '丁巳': '土五局',
-    // 戊午己未 天上火
-    '戊午': '火六局', '己未': '火六局',
-    // 庚申辛酉 石榴木
-    '庚申': '木三局', '辛酉': '木三局',
-    // 壬戌癸亥 大海水
-    '壬戌': '水二局', '癸亥': '水二局',
-  }
-
-  const key = palaceStem + palaceBranch
-  return nayinTable[key] || '水二局'
+  return HEAVENLY_STEMS[stemIndex]
 }
 
 /**
- * Get the Five Element number from string
+ * Calculate Five Element (五行局)
+ * 依命宮天干地支的納音五行決定
+ *
+ * @param yearStem - Year's heavenly stem
+ * @param mingGong - Life palace position (0-11)
+ * @returns Five element number (2, 3, 4, 5, or 6)
  */
-export function getFiveElementNumber(fiveElement: string): number {
-  const map: Record<string, number> = {
-    '水二局': 2,
-    '木三局': 3,
-    '金四局': 4,
-    '土五局': 5,
-    '火六局': 6,
-  }
-  return map[fiveElement] || 3
+export function calcWuXingJu(yearStem: string, mingGong: number): number {
+  const palaceStem = calcPalaceTianGan(yearStem, mingGong)
+  const palaceBranch = EARTHLY_BRANCHES[mingGong]
+  const key = palaceStem + palaceBranch
+
+  return NAYIN_TABLE[key] ?? 3
 }
 
 /**
- * Get branch for a palace position
+ * Get Five Element name
+ */
+export function getWuXingJuName(wuXingJu: number): string {
+  return FIVE_ELEMENTS[wuXingJu as keyof typeof FIVE_ELEMENTS] ?? '木三局'
+}
+
+/**
+ * Get Ming Zhu (命主) - based on life palace branch
+ */
+export function getMingZhu(mingGong: number): string {
+  const branch = EARTHLY_BRANCHES[mingGong]
+  return MINGZHU_TABLE[branch] ?? '貪狼'
+}
+
+/**
+ * Get Shen Zhu (身主) - based on year branch
+ */
+export function getShenZhu(yearBranch: string): string {
+  return SHENZHU_TABLE[yearBranch] ?? '火星'
+}
+
+/**
+ * Get earthly branch name for a position
  */
 export function getBranchForPosition(position: number): string {
-  return PALACE_BRANCHES[(position - 1 + 12) % 12]
+  return EARTHLY_BRANCHES[(position + 12) % 12]
 }
 
 /**
  * Get palace name for a position (relative to life palace)
  */
-export function getPalaceNameForPosition(position: number, lifePalacePosition: number): string {
-  const relativePosition = (position - lifePalacePosition + 12) % 12
+export function getPalaceNameForPosition(position: number, mingGong: number): string {
+  // Palace names start from 命宮 and go counterclockwise
+  const relativePosition = (position - mingGong + 12) % 12
   return PALACE_NAMES[relativePosition]
 }
 
 /**
- * Create the 12 palaces with their names and branches
+ * Create all 12 palaces with their names, branches, and stems
  */
-export function createPalaces(lifePalacePosition: number): Array<{
+export function createPalaces(
+  mingGong: number,
+  yearStem: string
+): Array<{
   position: number
   branch: string
+  stem: string
   name: string
 }> {
   const palaces = []
 
   for (let i = 0; i < 12; i++) {
-    const position = i + 1
-    const branch = PALACE_BRANCHES[i]
-    const name = getPalaceNameForPosition(position, lifePalacePosition)
+    const branch = EARTHLY_BRANCHES[i]
+    const stem = calcPalaceTianGan(yearStem, i)
+    const name = getPalaceNameForPosition(i, mingGong)
 
-    palaces.push({ position, branch, name })
+    palaces.push({
+      position: i,
+      branch,
+      stem,
+      name,
+    })
   }
 
   return palaces
+}
+
+/**
+ * Determine if year is Yang (陽年) or Yin (陰年)
+ * Yang years: 甲丙戊庚壬 (even index in HEAVENLY_STEMS)
+ * Yin years: 乙丁己辛癸 (odd index in HEAVENLY_STEMS)
+ */
+export function isYangYear(yearStem: string): boolean {
+  const index = HEAVENLY_STEMS.indexOf(yearStem)
+  return index % 2 === 0
+}
+
+/**
+ * Determine Da Xian (大限) direction
+ * 陽年男命、陰年女命 → 順行 (clockwise)
+ * 陰年男命、陽年女命 → 逆行 (counterclockwise)
+ */
+export function isDaXianForward(yearStem: string, gender: 'male' | 'female'): boolean {
+  const isYang = isYangYear(yearStem)
+  const isMale = gender === 'male'
+  return isYang === isMale
 }

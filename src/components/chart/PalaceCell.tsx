@@ -21,7 +21,15 @@ export function PalaceCell({ palace, isLifePalace, isBodyPalace }: PalaceCellPro
     >
       {/* Palace Header */}
       <div className="flex justify-between items-start mb-1">
-        <span className="text-xs text-ink/50">{palace.branch}</span>
+        <div className="flex flex-col">
+          <span className="text-xs text-ink/50">{palace.stem}{palace.branch}</span>
+          {/* Decadal (大限) range */}
+          {palace.decadal && (
+            <span className="text-[9px] text-ink/40">
+              {palace.decadal.range[0]}-{palace.decadal.range[1]}
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1">
           {isLifePalace && (
             <span className="text-[10px] bg-primary text-cream px-1 rounded">命</span>
@@ -108,9 +116,35 @@ function StarBadge({ star, type }: StarBadgeProps) {
     '化忌': '忌',
   }
 
+  // Brightness symbols (亮度)
+  const brightnessSymbols: Record<string, string> = {
+    '廟': '廟',
+    '旺': '旺',
+    '得': '得',
+    '利': '利',
+    '平': '',
+    '不': '不',
+    '陷': '陷',
+  }
+
+  const brightnessStyles: Record<string, string> = {
+    '廟': 'text-amber-600',
+    '旺': 'text-amber-500',
+    '得': 'text-green-600',
+    '利': 'text-green-500',
+    '平': 'text-ink/40',
+    '不': 'text-ink/40',
+    '陷': 'text-red-400',
+  }
+
   return (
     <span className={`${typeStyles[type]} whitespace-nowrap`}>
       {star.name}
+      {star.brightness && brightnessSymbols[star.brightness] && (
+        <sub className={`ml-0.5 text-[9px] ${brightnessStyles[star.brightness] || ''}`}>
+          {brightnessSymbols[star.brightness]}
+        </sub>
+      )}
       {star.transformation && (
         <sup className={`ml-0.5 ${transformationStyles[star.transformation]}`}>
           {transformationSymbols[star.transformation]}

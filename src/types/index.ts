@@ -4,9 +4,9 @@ export interface BirthData {
   gender: 'male' | 'female'
   birthDate: Date
   birthTime: string // HH:mm format
-  birthPlace: string
-  longitude: number
-  timezone: number
+  birthPlace?: string
+  longitude?: number
+  timezone?: number
 }
 
 // Lunar date type
@@ -35,12 +35,21 @@ export interface Star {
 // Palace type
 export interface Palace {
   name: string
-  position: number // 1-12
+  position: number // 0-11 (地支index)
   branch: string  // 地支
+  stem?: string   // 宮干
   mainStars: Star[]
   auxiliaryStars: Star[]
   harmfulStars: Star[]
   miscStars: Star[]
+  // iztro additional fields
+  decadal?: {
+    range: [number, number]
+    heavenlyStem: string
+    earthlyBranch: string
+  }
+  ages?: number[]
+  isBodyPalace?: boolean
 }
 
 // Chart type
@@ -57,7 +66,16 @@ export interface Chart {
     corrected: string
     difference: number // minutes
   }
+  mingZhu?: string  // 命主
+  shenZhu?: string  // 身主
   createdAt: Date
+  // iztro additional fields
+  zodiac?: string      // 生肖
+  sign?: string        // 星座
+  chineseDate?: string // 干支紀年日期
+  time?: string        // 時辰
+  timeRange?: string   // 時辰對應的時間段
+  _astrolabe?: unknown // iztro astrolabe reference for advanced features
 }
 
 // Master types
@@ -99,7 +117,6 @@ export interface ChatSession {
 export interface Settings {
   language: 'zh-TW' | 'zh-CN' | 'en'
   theme: 'light' | 'dark'
-  trueSolarTimeEnabled: boolean
   // AI Settings
   apiEndpoint?: string
   apiKey?: string

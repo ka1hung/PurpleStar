@@ -1,6 +1,5 @@
 import { useTranslation } from 'react-i18next'
 import type { Chart } from '../../types'
-import { formatTimeDifference } from '../../lib/ziwei/trueSolarTime'
 
 interface ChartCenterProps {
   chart: Chart
@@ -9,7 +8,7 @@ interface ChartCenterProps {
 export function ChartCenter({ chart }: ChartCenterProps) {
   const { t } = useTranslation()
 
-  const { birthData, lunarDate, fiveElement, trueSolarTime } = chart
+  const { birthData, lunarDate, fiveElement, zodiac, sign, mingZhu, shenZhu, time, timeRange } = chart
 
   // Format lunar date
   const lunarDateStr = `${lunarDate.yearGanZhi}年 ${lunarDate.isLeapMonth ? '閏' : ''}${getLunarMonthName(lunarDate.month)} ${getLunarDayName(lunarDate.day)}`
@@ -39,14 +38,17 @@ export function ChartCenter({ chart }: ChartCenterProps) {
           {lunarDateStr}
         </p>
 
-        {/* Time */}
+        {/* Time with range */}
         <p className="text-ink/70">
-          {lunarDate.hourGanZhi}
+          {time || lunarDate.hourGanZhi}時
+          {timeRange && <span className="text-xs ml-1">({timeRange})</span>}
         </p>
 
-        {/* Gender */}
+        {/* Gender & Zodiac & Sign */}
         <p className="text-ink/70">
           {birthData.gender === 'male' ? '男' : '女'}
+          {zodiac && <span className="ml-2">屬{zodiac}</span>}
+          {sign && <span className="ml-2">{sign}</span>}
         </p>
       </div>
 
@@ -60,21 +62,13 @@ export function ChartCenter({ chart }: ChartCenterProps) {
         </span>
       </div>
 
-      {/* True Solar Time Info */}
-      {trueSolarTime.difference !== 0 && (
-        <div className="text-xs text-ink/50 mt-2">
-          <p>真太陽時校正</p>
-          <p className="text-primary">
-            {trueSolarTime.original} → {trueSolarTime.corrected}
-          </p>
-          <p>({formatTimeDifference(trueSolarTime.difference)})</p>
+      {/* Ming Zhu & Shen Zhu */}
+      {(mingZhu || shenZhu) && (
+        <div className="text-xs text-ink/70 space-x-3">
+          {mingZhu && <span>命主: {mingZhu}</span>}
+          {shenZhu && <span>身主: {shenZhu}</span>}
         </div>
       )}
-
-      {/* Birth place */}
-      <p className="text-xs text-ink/50 mt-2">
-        {birthData.birthPlace}
-      </p>
     </div>
   )
 }

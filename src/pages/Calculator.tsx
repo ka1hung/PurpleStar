@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BirthDataForm } from '../components/form'
-import { ChartGrid } from '../components/chart'
+import { ChartGrid, ChartInterpretation } from '../components/chart'
 import { ChatWindow } from '../components/chat'
 import { calculateChart } from '../lib/ziwei'
 import { useAppStore } from '../store'
@@ -75,10 +75,9 @@ export function Calculator() {
                         <div className="text-sm text-ink/60">
                           {birthDate.getFullYear()}年{birthDate.getMonth() + 1}月{birthDate.getDate()}日
                           {' '}{savedChart.birthData.birthTime}
-                          {' · '}{savedChart.birthData.birthPlace}
                         </div>
                         <div className="text-xs text-primary/70 mt-1">
-                          {savedChart.fiveElement} · 命宮{savedChart.palaces[savedChart.lifePalacePosition - 1]?.branch}
+                          {savedChart.fiveElement} · 命宮{savedChart.palaces[savedChart.lifePalacePosition]?.branch}
                         </div>
                       </button>
                       <button
@@ -124,37 +123,52 @@ export function Calculator() {
                 }
               `}
             >
-              {showChat ? '隱藏諮詢' : 'AI 命理諮詢'}
+              {showChat ? '隱藏 AI 諮詢' : 'AI 深度解盤'}
+              <span className="ml-1 text-xs opacity-70">(進階)</span>
             </button>
           </div>
 
-          {/* True Solar Time Notice */}
-          {chart.trueSolarTime.difference !== 0 && (
-            <div className="max-w-2xl mx-auto bg-gold/10 border border-gold/30 rounded-lg p-4 text-center">
-              <p className="text-sm text-ink/70">
-                <span className="font-medium text-gold-dark">真太陽時校正已啟用</span>
-                <br />
-                標準時間 {chart.trueSolarTime.original} → 真太陽時 {chart.trueSolarTime.corrected}
-                <br />
-                <span className="text-xs text-ink/50">
-                  (校正 {chart.trueSolarTime.difference > 0 ? '+' : ''}{chart.trueSolarTime.difference} 分鐘)
-                </span>
-              </p>
-            </div>
-          )}
 
           {/* Chart */}
           <ChartGrid chart={chart} />
 
-          {/* AI Chat */}
-          {showChat && (
-            <div className="max-w-4xl mx-auto">
-              <h2 className="font-serif text-2xl text-primary text-center mb-6">
+          {/* Basic Interpretation */}
+          <div className="max-w-4xl mx-auto">
+            <h2 className="font-serif text-2xl text-primary text-center mb-6">
+              命盤解說
+            </h2>
+            <ChartInterpretation chart={chart} />
+          </div>
+
+        </div>
+      )}
+
+      {/* AI Chat Overlay */}
+      {showChat && chart && (
+        <div className="fixed inset-0 bg-ink/60 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
+            {/* Header */}
+            <div className="flex items-center justify-between p-4 border-b border-primary/10">
+              <h2 className="font-serif text-xl text-primary">
                 {t('chat.title')}
+                <span className="ml-2 text-sm bg-gold/20 text-gold-dark px-2 py-1 rounded">
+                  進階功能
+                </span>
               </h2>
+              <button
+                onClick={() => setShowChat(false)}
+                className="p-2 text-ink/60 hover:text-ink hover:bg-ink/10 rounded-lg transition-all"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            {/* Chat content */}
+            <div className="flex-1 overflow-hidden">
               <ChatWindow chart={chart} />
             </div>
-          )}
+          </div>
         </div>
       )}
 
