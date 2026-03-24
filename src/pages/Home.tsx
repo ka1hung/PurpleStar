@@ -38,16 +38,9 @@ export function Home() {
             <h1 className="font-serif text-5xl md:text-7xl text-primary mb-6">
               {t('home.hero.title')}
             </h1>
-            <p className="text-xl md:text-2xl text-ink/70 mb-4">
+            <p className="text-xl md:text-2xl text-ink/70 mb-10">
               {t('home.hero.subtitle')}
             </p>
-
-            {/* Tagline with highlight */}
-            <div className="inline-block bg-primary/10 border border-primary/20 rounded-classical px-6 py-3 mb-10">
-              <p className="text-lg text-primary font-medium">
-                「{t('home.hero.tagline')}」
-              </p>
-            </div>
 
             {/* CTA Button */}
             <div>

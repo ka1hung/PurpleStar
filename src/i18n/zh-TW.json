@@ -27,14 +27,9 @@
     "hero": {
       "title": "紫微星盤",
       "subtitle": "探索您的命運地圖",
-      "tagline": "您的命盤，可能一直都算錯了時辰",
       "cta": "立即排盤"
     },
     "features": {
-      "trueSolarTime": {
-        "title": "真太陽時校正",
-        "desc": "依出生地經度自動校正時辰，還原古法精準度"
-      },
       "aiMasters": {
         "title": "多風格 AI 命理師",
         "desc": "8 種不同解盤風格，從傳統道長到台式神婆任選"
@@ -63,14 +58,6 @@
       "birthPlacePlaceholder": "請選擇或輸入城市",
       "calculate": "排盤",
       "calculating": "命盤計算中..."
-    },
-    "solarTime": {
-      "title": "真太陽時校正",
-      "standard": "標準時間",
-      "true": "真太陽時",
-      "difference": "時差",
-      "enabled": "已啟用校正",
-      "disabled": "未啟用校正"
     },
     "result": {
       "title": "您的命盤",
