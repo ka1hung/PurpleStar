@@ -31,11 +31,16 @@ export function solarToLunar(
   // Get the hour branch (時辰地支)
   const hourBranch = getHourBranch(hour)
 
+  // lunar-javascript uses negative month for leap months (e.g., -2 = leap 2nd month)
+  const lunarMonth = lunar.getMonth()
+  const isLeapMonth = lunarMonth < 0
+  const absoluteMonth = Math.abs(lunarMonth)
+
   return {
     year: lunar.getYear(),
-    month: lunar.getMonth(),
+    month: absoluteMonth,
     day: lunar.getDay(),
-    isLeapMonth: lunar.isLeap(),
+    isLeapMonth,
     yearGanZhi: lunar.getYearInGanZhi(),
     monthGanZhi: lunar.getMonthInGanZhi(),
     dayGanZhi: lunar.getDayInGanZhi(),

@@ -13,9 +13,8 @@ declare module 'lunar-javascript' {
 
   export class Lunar {
     getYear(): number
-    getMonth(): number
+    getMonth(): number  // Returns negative for leap months (e.g., -2 = leap 2nd month)
     getDay(): number
-    isLeap(): boolean
     getYearInGanZhi(): string
     getMonthInGanZhi(): string
     getDayInGanZhi(): string
