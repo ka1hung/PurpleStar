@@ -286,8 +286,8 @@ export function ChatWindow({ chart }: ChatWindowProps) {
       </div>
 
       {/* Input - sticky at bottom for mobile */}
-      <div className="sticky bottom-0 p-4 border-t border-primary/10 bg-white">
-        <div className="flex gap-2 items-center">
+      <div className="sticky bottom-0 border-t border-primary/10 bg-white chat-input-container">
+        <div className="flex gap-2 items-center p-4 pb-0">
           <input
             type="text"
             value={input}
