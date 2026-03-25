@@ -103,20 +103,26 @@ function formatHoroscope(chart: Chart): string {
     if (!horoscope) return '【流年運勢】\n無法取得流年資料'
 
     const { decadal, age, yearly, monthly } = horoscope
+    const currentYear = new Date().getFullYear()
 
-    // Format decadal (大限)
+    // Format decadal (大限) with emphasis
     const decadalInfo = decadal ? `
-【當前大限】
-大限宮位：${decadal.name}（${decadal.heavenlyStem}${decadal.earthlyBranch}）
+【★★★ 當前大限 ★★★】
+⚡ 此人目前正在走「${decadal.name}」大限（${decadal.heavenlyStem}${decadal.earthlyBranch}）
 大限四化：${decadal.mutagen?.join('、') || '無'}
-大限十二宮：${decadal.palaceNames?.join('→') || ''}` : ''
+大限十二宮重疊：${decadal.palaceNames?.join('→') || ''}
+💡 大限影響這10年的整體運勢基調` : ''
 
-    // Format yearly (流年)
+    // Format yearly (流年) with emphasis
     const yearlyInfo = yearly ? `
-【${new Date().getFullYear()}年流年】
-流年宮位：${yearly.name}（${yearly.heavenlyStem}${yearly.earthlyBranch}）
+【★★★ ${currentYear}年流年（今年）★★★】
+⚡ 今年流年落在「${yearly.name}」（${yearly.heavenlyStem}${yearly.earthlyBranch}）
 流年四化：${yearly.mutagen?.join('、') || '無'}
-流年十二宮：${yearly.palaceNames?.join('→') || ''}` : ''
+流年十二宮重疊：${yearly.palaceNames?.join('→') || ''}
+💡 流年四化是今年吉凶的關鍵指標` : ''
+
+    // Format all years in current decadal
+    const decadalYearsInfo = formatDecadalYears(chart, decadal, currentYear)
 
     // Format age (小限)
     const ageInfo = age ? `
@@ -132,12 +138,58 @@ function formatHoroscope(chart: Chart): string {
 
     return `${decadalInfo}
 ${yearlyInfo}
+${decadalYearsInfo}
 ${ageInfo}
 ${monthlyInfo}`.trim()
   } catch (error) {
     console.error('Error formatting horoscope:', error)
     return '【流年運勢】\n流年計算發生錯誤'
   }
+}
+
+/**
+ * Format all years within the current decadal period
+ */
+function formatDecadalYears(chart: Chart, decadal: any, currentYear: number): string {
+  if (!decadal) return ''
+
+  const { birthData } = chart
+  const birthYear = new Date(birthData.birthDate).getFullYear()
+  const [startAge, endAge] = decadal.range || [0, 0]
+
+  // Calculate year range for this decadal
+  const startYear = birthYear + startAge
+  const endYear = birthYear + endAge
+
+  const yearLines: string[] = []
+
+  for (let year = startYear; year <= endYear; year++) {
+    // Get yearly stem from the year
+    const yearStem = getYearStem(year)
+    const stars = TRANSFORMATION_TABLE[yearStem]
+    const sihua = stars
+      ? `${stars[0]}化祿、${stars[1]}化權、${stars[2]}化科、${stars[3]}化忌`
+      : '未知'
+
+    const marker = year === currentYear ? ' ← 【今年】' : ''
+    const age = year - birthYear
+    yearLines.push(`${year}年（${age}歲）${yearStem}年：${sihua}${marker}`)
+  }
+
+  return `
+【當前大限內的流年四化】
+${yearLines.join('\n')}`
+}
+
+/**
+ * Get the heavenly stem for a given year
+ */
+function getYearStem(year: number): string {
+  const stems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
+  // 甲子年 = 1984, 1924, 1864...
+  // year % 10: 4=甲, 5=乙, 6=丙, 7=丁, 8=戊, 9=己, 0=庚, 1=辛, 2=壬, 3=癸
+  const index = (year - 4) % 10
+  return stems[index >= 0 ? index : index + 10]
 }
 
 /**
@@ -165,15 +217,23 @@ ${chartContext}
 
 請根據以上命盤資料與流年運勢，以你的風格為問命者解答問題。
 
+【⚠️ 重要：流年運勢資訊】
+上方資料中已包含完整的流年運勢資訊，請務必使用：
+- 「★★★ 當前大限 ★★★」：此人目前正在走的10年大運
+- 「★★★ 今年流年 ★★★」：今年的運勢重點
+- 「當前大限內的流年四化」：這個大限內每一年的四化
+- 大限四化 + 流年四化的疊加，是判斷該年吉凶的關鍵
+
 【解盤要點】
 1. 始終保持你的角色風格
-2. 結合「本命盤」與「流年運勢」來分析，讓解讀更精準
-3. 回答時說明是「本命特質」還是「流年影響」
-4. 注意大限、流年、小限的疊加效應
-5. 主星亮度(廟/旺/得/利/平/陷)會影響星曜發揮
-6. 四化(祿權科忌)是重要的吉凶指標
-7. 適時提醒命理僅供參考，人生掌握在自己手中
-8. 對於健康、法律、投資等敏感問題，要提醒諮詢專業人士
+2. 回答時必須結合「大限」與「流年」來分析！不要說沒有流年資料
+3. 明確告訴問命者：「你目前正在走 XX 大限，今年流年落在 XX 宮」
+4. 說明是「本命特質」、「大限影響」還是「流年影響」
+5. 重視大限四化與流年四化的疊加效應（雙祿、雙忌等）
+6. 主星亮度(廟/旺/得/利/平/陷)會影響星曜發揮
+7. 四化(祿權科忌)是重要的吉凶指標
+8. 適時提醒命理僅供參考，人生掌握在自己手中
+9. 對於健康、法律、投資等敏感問題，要提醒諮詢專業人士
 `
 }
 
