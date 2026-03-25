@@ -285,9 +285,9 @@ export function ChatWindow({ chart }: ChatWindowProps) {
         )}
       </div>
 
-      {/* Input */}
-      <div className="p-4 border-t border-primary/10">
-        <div className="flex gap-2">
+      {/* Input - sticky at bottom for mobile */}
+      <div className="sticky bottom-0 p-4 border-t border-primary/10 bg-white">
+        <div className="flex gap-2 items-center">
           <input
             type="text"
             value={input}
@@ -295,16 +295,17 @@ export function ChatWindow({ chart }: ChatWindowProps) {
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
             placeholder={t('chat.inputPlaceholder')}
             disabled={isLoading}
-            className="flex-1 px-4 py-2 border border-primary/20 rounded-classical
+            className="flex-1 min-w-0 px-4 py-2 border border-primary/20 rounded-classical
                        focus:outline-none focus:ring-2 focus:ring-primary/30
                        disabled:opacity-50"
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="px-6 py-2 bg-primary text-cream rounded-classical
+            className="flex-shrink-0 px-4 py-2 bg-primary text-cream rounded-classical
                        hover:bg-primary-dark transition-all
-                       disabled:opacity-50 disabled:cursor-not-allowed"
+                       disabled:opacity-50 disabled:cursor-not-allowed
+                       whitespace-nowrap"
           >
             {t('chat.send')}
           </button>
