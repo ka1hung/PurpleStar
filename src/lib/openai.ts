@@ -1,6 +1,7 @@
 import type { Chart, MasterType } from '../types'
 import { getMasterById } from '../data/prompts'
 import { getHoroscope } from './ziwei'
+import { TRANSFORMATION_TABLE } from './ziwei/constants'
 
 /**
  * Format chart data for AI context
@@ -36,6 +37,9 @@ export function formatChartForAI(chart: Chart): string {
   // Get current horoscope (流年)
   const horoscopeInfo = formatHoroscope(chart)
 
+  // Get all decadal periods (大限總覽)
+  const allDecadalsInfo = formatAllDecadals(chart)
+
   return `
 【命盤資料】
 姓名：${birthData.name || '未提供'}
@@ -54,7 +58,40 @@ ${lifePalaceStars}
 ${palaceSummary}
 
 ${horoscopeInfo}
+
+${allDecadalsInfo}
 `.trim()
+}
+
+/**
+ * Format all decadal periods (大限總覽) for AI
+ */
+function formatAllDecadals(chart: Chart): string {
+  const { palaces } = chart
+
+  // Collect all decadals and sort by start age
+  const decadals = palaces
+    .filter(p => p.decadal)
+    .map(p => ({
+      name: p.name,
+      stem: p.decadal!.heavenlyStem,
+      branch: p.decadal!.earthlyBranch,
+      range: p.decadal!.range,
+    }))
+    .sort((a, b) => a.range[0] - b.range[0])
+
+  if (decadals.length === 0) return ''
+
+  const decadalLines = decadals.map(d => {
+    const stars = TRANSFORMATION_TABLE[d.stem]
+    const sihua = stars
+      ? `${stars[0]}化祿、${stars[1]}化權、${stars[2]}化科、${stars[3]}化忌`
+      : '未知'
+    return `${d.range[0]}-${d.range[1]}歲（${d.name}·${d.stem}${d.branch}）：${sihua}`
+  })
+
+  return `【大限總覽】
+${decadalLines.join('\n')}`
 }
 
 /**
@@ -186,15 +223,18 @@ export async function sendChatMessage(
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`,
     }
-    // OpenAI o1/o3 models have different requirements
-    const isReasoningModel = apiModel.startsWith('o1') || apiModel.startsWith('o3')
+    // OpenAI newer models (o1/o3/gpt-4.1/gpt-4.5) don't support temperature/stream
+    const isNewerModel =
+      apiModel.startsWith('o1') ||
+      apiModel.startsWith('o3') ||
+      apiModel.startsWith('gpt-4.1') ||
+      apiModel.startsWith('gpt-4.5')
 
-    if (isReasoningModel) {
-      // o1/o3: no temperature, no stream, use max_completion_tokens
+    if (isNewerModel) {
+      // Newer models: no temperature, no stream
       body = JSON.stringify({
         model: apiModel,
         messages,
-        max_completion_tokens: 4000,
       })
     } else {
       body = JSON.stringify({
@@ -202,7 +242,6 @@ export async function sendChatMessage(
         messages,
         stream: !!onStream,
         temperature: 0.8,
-        max_tokens: 2000,
       })
     }
   }
@@ -218,11 +257,15 @@ export async function sendChatMessage(
     throw new Error(error.error?.message || `API error: ${response.status}`)
   }
 
-  // Check if it's a reasoning model (o1/o3) that doesn't support streaming
-  const isReasoningModel = apiModel.startsWith('o1') || apiModel.startsWith('o3')
+  // Check if it's a model that doesn't support streaming
+  const isNewerModel =
+    apiModel.startsWith('o1') ||
+    apiModel.startsWith('o3') ||
+    apiModel.startsWith('gpt-4.1') ||
+    apiModel.startsWith('gpt-4.5')
 
-  if (isAnthropic || isReasoningModel) {
-    // Anthropic and reasoning models don't support streaming
+  if (isAnthropic || isNewerModel) {
+    // Anthropic and newer OpenAI models don't support streaming
     const data = await response.json()
     if (isAnthropic) {
       return data.content?.[0]?.text || ''
