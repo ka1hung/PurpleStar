@@ -10,6 +10,8 @@ import {
   SHENZHU_INTERPRETATIONS,
   generateBasicInterpretation,
 } from '../../data/interpretations'
+import { getHoroscope } from '../../lib/ziwei'
+import { TRANSFORMATION_TABLE } from '../../lib/ziwei/constants'
 
 interface ChartInterpretationProps {
   chart: Chart
@@ -160,6 +162,9 @@ function OverviewTab({
           ))}
         </div>
       </div>
+
+      {/* Horoscope / Fortune Section */}
+      <HoroscopeSection chart={chart} />
     </div>
   )
 }
@@ -387,6 +392,164 @@ function InfoCard({
       <div className="text-xs text-ink/50 mb-1">{label}</div>
       <div className="font-serif text-lg text-primary font-medium">{value}</div>
       {subValue && <div className="text-xs text-ink/60 mt-1">{subValue}</div>}
+    </div>
+  )
+}
+
+/**
+ * Get the heavenly stem for a given year
+ */
+function getYearStem(year: number): string {
+  const stems = ['甲', '乙', '丙', '丁', '戊', '己', '庚', '辛', '壬', '癸']
+  const index = (year - 4) % 10
+  return stems[index >= 0 ? index : index + 10]
+}
+
+/**
+ * Horoscope Section - Shows current decadal and yearly fortune
+ */
+function HoroscopeSection({ chart }: { chart: Chart }) {
+  const horoscope = getHoroscope(chart)
+  const currentYear = new Date().getFullYear()
+  const birthYear = new Date(chart.birthData.birthDate).getFullYear()
+
+  if (!horoscope) {
+    return null
+  }
+
+  const { decadal, yearly, age } = horoscope
+
+  // Calculate all years in current decadal
+  const decadalYears: Array<{
+    year: number
+    age: number
+    stem: string
+    sihua: string[]
+    isCurrent: boolean
+  }> = []
+
+  if (decadal?.range) {
+    const [startAge, endAge] = decadal.range
+    for (let a = startAge; a <= endAge; a++) {
+      const year = birthYear + a
+      const stem = getYearStem(year)
+      const stars = TRANSFORMATION_TABLE[stem] || []
+      decadalYears.push({
+        year,
+        age: a,
+        stem,
+        sihua: stars,
+        isCurrent: year === currentYear,
+      })
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Current Decadal */}
+      {decadal && (
+        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
+          <h3 className="font-serif text-lg text-purple-800 font-medium mb-2 flex items-center gap-2">
+            <span>🔮</span>
+            <span>當前大限：{decadal.name}</span>
+            <span className="text-sm font-normal text-purple-600">
+              （{decadal.range?.[0]}-{decadal.range?.[1]}歲）
+            </span>
+          </h3>
+          <div className="text-sm text-purple-700 space-y-1">
+            <p>
+              <span className="font-medium">大限宮位：</span>
+              {decadal.name}（{decadal.heavenlyStem}{decadal.earthlyBranch}）
+            </p>
+            {decadal.mutagen && decadal.mutagen.length > 0 && (
+              <p>
+                <span className="font-medium">大限四化：</span>
+                {decadal.mutagen.join('、')}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Current Year */}
+      {yearly && (
+        <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-lg p-4 border border-amber-200">
+          <h3 className="font-serif text-lg text-amber-800 font-medium mb-2 flex items-center gap-2">
+            <span>⭐</span>
+            <span>{currentYear}年流年</span>
+            {age && (
+              <span className="text-sm font-normal text-amber-600">
+                （虛歲 {age.nominalAge} 歲）
+              </span>
+            )}
+          </h3>
+          <div className="text-sm text-amber-700 space-y-1">
+            <p>
+              <span className="font-medium">流年宮位：</span>
+              {yearly.name}（{yearly.heavenlyStem}{yearly.earthlyBranch}）
+            </p>
+            {yearly.mutagen && yearly.mutagen.length > 0 && (
+              <p>
+                <span className="font-medium">流年四化：</span>
+                {yearly.mutagen.join('、')}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* All Years in Current Decadal */}
+      {decadalYears.length > 0 && (
+        <div>
+          <h3 className="font-serif text-lg text-primary font-medium mb-3">
+            當前大限內的流年四化
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {decadalYears.map(({ year, age, stem, sihua, isCurrent }) => (
+              <div
+                key={year}
+                className={`
+                  p-3 rounded-lg text-sm
+                  ${isCurrent
+                    ? 'bg-amber-100 border-2 border-amber-400 ring-2 ring-amber-200'
+                    : 'bg-cream/50 border border-primary/10'
+                  }
+                `}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className={`font-medium ${isCurrent ? 'text-amber-800' : 'text-primary'}`}>
+                    {year}年（{age}歲）{stem}年
+                  </span>
+                  {isCurrent && (
+                    <span className="text-xs bg-amber-500 text-white px-2 py-0.5 rounded-full">
+                      今年
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {sihua.map((star, i) => {
+                    const types = ['化祿', '化權', '化科', '化忌']
+                    const colors = [
+                      'bg-green-100 text-green-700',
+                      'bg-blue-100 text-blue-700',
+                      'bg-purple-100 text-purple-700',
+                      'bg-red-100 text-red-700',
+                    ]
+                    return (
+                      <span
+                        key={i}
+                        className={`text-xs px-2 py-0.5 rounded ${colors[i]}`}
+                      >
+                        {star}{types[i]}
+                      </span>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
