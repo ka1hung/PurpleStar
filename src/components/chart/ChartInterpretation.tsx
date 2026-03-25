@@ -17,7 +17,7 @@ interface ChartInterpretationProps {
   chart: Chart
 }
 
-type TabType = 'overview' | 'palaces' | 'stars'
+type TabType = 'overview' | 'horoscope' | 'palaces' | 'stars'
 
 export function ChartInterpretation({ chart }: ChartInterpretationProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview')
@@ -37,6 +37,7 @@ export function ChartInterpretation({ chart }: ChartInterpretationProps) {
 
   const tabs: { id: TabType; label: string }[] = [
     { id: 'overview', label: '命盤總覽' },
+    { id: 'horoscope', label: '流年運勢' },
     { id: 'palaces', label: '十二宮解說' },
     { id: 'stars', label: '星曜解說' },
   ]
@@ -71,6 +72,7 @@ export function ChartInterpretation({ chart }: ChartInterpretationProps) {
             lifePalaceMainStars={lifePalaceMainStars}
           />
         )}
+        {activeTab === 'horoscope' && <HoroscopeTab chart={chart} />}
         {activeTab === 'palaces' && (
           <PalacesTab
             chart={chart}
@@ -162,9 +164,6 @@ function OverviewTab({
           ))}
         </div>
       </div>
-
-      {/* Horoscope / Fortune Section */}
-      <HoroscopeSection chart={chart} />
     </div>
   )
 }
@@ -408,7 +407,7 @@ function getYearStem(year: number): string {
 /**
  * Horoscope Section - Shows current decadal and yearly fortune
  */
-function HoroscopeSection({ chart }: { chart: Chart }) {
+function HoroscopeTab({ chart }: { chart: Chart }) {
   const horoscope = getHoroscope(chart)
   const currentYear = new Date().getFullYear()
   const birthYear = new Date(chart.birthData.birthDate).getFullYear()
