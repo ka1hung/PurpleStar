@@ -405,18 +405,31 @@ function getYearStem(year: number): string {
 }
 
 /**
- * Horoscope Section - Shows current decadal and yearly fortune
+ * Horoscope Tab - Shows all decadals and yearly fortune
  */
 function HoroscopeTab({ chart }: { chart: Chart }) {
   const horoscope = getHoroscope(chart)
   const currentYear = new Date().getFullYear()
   const birthYear = new Date(chart.birthData.birthDate).getFullYear()
+  const currentAge = currentYear - birthYear
 
-  if (!horoscope) {
-    return null
-  }
+  const { yearly, age } = horoscope || {}
 
-  const { decadal, yearly, age } = horoscope
+  // Get all decadals from palaces and sort by start age
+  const allDecadals = chart.palaces
+    .filter(p => p.decadal?.range)
+    .map(p => ({
+      name: p.name,
+      stem: p.decadal!.heavenlyStem,
+      branch: p.decadal!.earthlyBranch,
+      startAge: p.decadal!.range[0],
+      endAge: p.decadal!.range[1],
+      isCurrent: currentAge >= p.decadal!.range[0] && currentAge <= p.decadal!.range[1],
+    }))
+    .sort((a, b) => a.startAge - b.startAge)
+
+  // Find current decadal for yearly breakdown
+  const currentDecadal = allDecadals.find(d => d.isCurrent)
 
   // Calculate all years in current decadal
   const decadalYears: Array<{
@@ -427,9 +440,8 @@ function HoroscopeTab({ chart }: { chart: Chart }) {
     isCurrent: boolean
   }> = []
 
-  if (decadal?.range) {
-    const [startAge, endAge] = decadal.range
-    for (let a = startAge; a <= endAge; a++) {
+  if (currentDecadal) {
+    for (let a = currentDecadal.startAge; a <= currentDecadal.endAge; a++) {
       const year = birthYear + a
       const stem = getYearStem(year)
       const stars = TRANSFORMATION_TABLE[stem] || []
@@ -444,31 +456,69 @@ function HoroscopeTab({ chart }: { chart: Chart }) {
   }
 
   return (
-    <div className="space-y-4">
-      {/* Current Decadal */}
-      {decadal && (
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
-          <h3 className="font-serif text-lg text-purple-800 font-medium mb-2 flex items-center gap-2">
-            <span>🔮</span>
-            <span>當前大限：{decadal.name}</span>
-            <span className="text-sm font-normal text-purple-600">
-              （{decadal.range?.[0]}-{decadal.range?.[1]}歲）
-            </span>
-          </h3>
-          <div className="text-sm text-purple-700 space-y-1">
-            <p>
-              <span className="font-medium">大限宮位：</span>
-              {decadal.name}（{decadal.heavenlyStem}{decadal.earthlyBranch}）
-            </p>
-            {decadal.mutagen && decadal.mutagen.length > 0 && (
-              <p>
-                <span className="font-medium">大限四化：</span>
-                {decadal.mutagen.join('、')}
-              </p>
-            )}
-          </div>
+    <div className="space-y-6">
+      {/* All Decadals Overview */}
+      <div>
+        <h3 className="font-serif text-lg text-primary font-medium mb-3 flex items-center gap-2">
+          <span>🔮</span>
+          <span>大限總覽</span>
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+          {allDecadals.map((d) => {
+            const stars = TRANSFORMATION_TABLE[d.stem] || []
+            return (
+              <div
+                key={d.name}
+                className={`
+                  p-4 rounded-lg
+                  ${d.isCurrent
+                    ? 'bg-gradient-to-r from-purple-100 to-indigo-100 border-2 border-purple-400 ring-2 ring-purple-200'
+                    : 'bg-cream/50 border border-primary/20'
+                  }
+                `}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className={`font-serif font-medium ${d.isCurrent ? 'text-purple-800' : 'text-primary'}`}>
+                    {d.name}
+                  </span>
+                  <span className={`text-sm ${d.isCurrent ? 'text-purple-600' : 'text-ink/60'}`}>
+                    {d.startAge}-{d.endAge}歲
+                  </span>
+                </div>
+                <div className="text-xs text-ink/70 mb-2">
+                  {d.stem}{d.branch}
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {stars.map((star, i) => {
+                    const types = ['化祿', '化權', '化科', '化忌']
+                    const colors = [
+                      'bg-green-100 text-green-700',
+                      'bg-blue-100 text-blue-700',
+                      'bg-purple-100 text-purple-700',
+                      'bg-red-100 text-red-700',
+                    ]
+                    return (
+                      <span
+                        key={i}
+                        className={`text-xs px-2 py-0.5 rounded ${colors[i]}`}
+                      >
+                        {star}{types[i]}
+                      </span>
+                    )
+                  })}
+                </div>
+                {d.isCurrent && (
+                  <div className="mt-2">
+                    <span className="text-xs bg-purple-500 text-white px-2 py-0.5 rounded-full">
+                      當前大限
+                    </span>
+                  </div>
+                )}
+              </div>
+            )
+          })}
         </div>
-      )}
+      </div>
 
       {/* Current Year */}
       {yearly && (
@@ -498,10 +548,10 @@ function HoroscopeTab({ chart }: { chart: Chart }) {
       )}
 
       {/* All Years in Current Decadal */}
-      {decadalYears.length > 0 && (
+      {decadalYears.length > 0 && currentDecadal && (
         <div>
           <h3 className="font-serif text-lg text-primary font-medium mb-3">
-            當前大限內的流年四化
+            當前大限（{currentDecadal.name} {currentDecadal.startAge}-{currentDecadal.endAge}歲）內的流年
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
             {decadalYears.map(({ year, age, stem, sihua, isCurrent }) => (
