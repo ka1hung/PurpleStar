@@ -10,12 +10,10 @@
   },
   "dependencies": {
     "@tailwindcss/postcss": "^4.2.2",
-    "i18next": "^25.10.5",
     "iztro": "^2.5.8",
     "lunar-javascript": "^1.7.7",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-i18next": "^16.6.2",
     "react-router-dom": "^7.13.2",
     "zustand": "^5.0.12"
   },

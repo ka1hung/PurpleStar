@@ -1,12 +1,8 @@
-import { useTranslation } from 'react-i18next'
-
 export function Disclaimer() {
-  const { t } = useTranslation()
-
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="font-serif text-4xl text-primary text-center mb-8">
-        {t('nav.disclaimer')}
+        免責聲明
       </h1>
 
       <div className="bg-white rounded-lg shadow-classical p-8 prose prose-lg max-w-none">

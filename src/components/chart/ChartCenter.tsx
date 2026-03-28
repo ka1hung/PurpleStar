@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next'
 import type { Chart } from '../../types'
 
 interface ChartCenterProps {
@@ -6,8 +5,6 @@ interface ChartCenterProps {
 }
 
 export function ChartCenter({ chart }: ChartCenterProps) {
-  const { t } = useTranslation()
-
   const { birthData, lunarDate, fiveElement, zodiac, sign, mingZhu, shenZhu, time, timeRange } = chart
 
   // Format lunar date

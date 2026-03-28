@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next'
 import { masterList } from '../../data/prompts'
 import type { MasterType } from '../../types'
 
@@ -8,8 +7,6 @@ interface MasterSelectorProps {
 }
 
 export function MasterSelector({ selectedMaster, onSelect }: MasterSelectorProps) {
-  const { t } = useTranslation()
-
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
       {masterList.map((master) => (
@@ -27,10 +24,10 @@ export function MasterSelector({ selectedMaster, onSelect }: MasterSelectorProps
         >
           <div className="text-3xl mb-2">{master.avatar}</div>
           <div className="font-serif text-sm font-medium text-primary">
-            {t(master.nameKey)}
+            {master.name}
           </div>
           <div className="text-xs text-ink/60 mt-1">
-            {t(master.descKey)}
+            {master.desc}
           </div>
         </button>
       ))}

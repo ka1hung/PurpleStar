@@ -1,7 +1,6 @@
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import { Layout } from './components/layout'
 import { Home, Calculator, Education, About, Privacy, Disclaimer, Settings } from './pages'
-import './i18n'
 
 function App() {
   return (

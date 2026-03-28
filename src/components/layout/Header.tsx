@@ -1,17 +1,15 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 
 export function Header() {
-  const { t } = useTranslation()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   const navItems = [
-    { path: '/', label: t('nav.home') },
-    { path: '/calculator', label: t('nav.calculator') },
-    { path: '/education', label: t('nav.education') },
-    { path: '/about', label: t('nav.about') },
+    { path: '/', label: '首頁' },
+    { path: '/calculator', label: '命盤計算' },
+    { path: '/education', label: '科普教學' },
+    { path: '/about', label: '關於' },
   ]
 
   const isActive = (path: string) => location.pathname === path
@@ -29,7 +27,7 @@ export function Header() {
               <span className="text-gold font-serif text-xl">紫</span>
             </div>
             <span className="font-serif text-xl text-primary hidden sm:block">
-              {t('common.appName')}
+              紫微星盤
             </span>
           </Link>
 

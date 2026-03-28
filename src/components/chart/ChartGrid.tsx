@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next'
 import type { Chart, Palace } from '../../types'
 import { PalaceCell } from './PalaceCell'
 import { ChartCenter } from './ChartCenter'
@@ -17,8 +16,6 @@ interface ChartGridProps {
  *     寅(2)   丑(1)   子(0)   亥(11)
  */
 export function ChartGrid({ chart }: ChartGridProps) {
-  const { t } = useTranslation()
-
   // Get palace by position (0-11 earthly branch index)
   const getPalace = (position: number): Palace | undefined => {
     return chart.palaces.find(p => p.position === position)

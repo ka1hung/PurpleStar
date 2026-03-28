@@ -1,6 +1,8 @@
 # 紫微星盤 Purple Star Astrology
 
-免費、開源的紫微斗數命盤計算工具，支援真太陽時校正與 AI 命理諮詢。
+免費、開源的紫微斗數命盤計算工具，支援 AI 命理諮詢。
+
+**線上體驗**: https://ka1hung.github.io/PurpleStar/
 
 ## 核心特色
 

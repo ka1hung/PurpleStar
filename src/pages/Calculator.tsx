@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { BirthDataForm } from '../components/form'
 import { ChartGrid, ChartInterpretation } from '../components/chart'
 import { ChatWindow } from '../components/chat'
@@ -8,7 +7,6 @@ import { useAppStore } from '../store'
 import type { BirthData, Chart } from '../types'
 
 export function Calculator() {
-  const { t } = useTranslation()
   const [chart, setChart] = useState<Chart | null>(null)
   const [isCalculating, setIsCalculating] = useState(false)
   const [showChat, setShowChat] = useState(false)
@@ -40,7 +38,7 @@ export function Calculator() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="font-serif text-4xl text-primary text-center mb-8">
-        {t('calculator.title')}
+        命盤計算
       </h1>
 
       {!chart ? (
@@ -150,7 +148,7 @@ export function Calculator() {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-primary/10">
               <h2 className="font-serif text-xl text-primary">
-                {t('chat.title')}
+                AI 命理諮詢
                 <span className="ml-2 text-sm bg-gold/20 text-gold-dark px-2 py-1 rounded">
                   進階功能
                 </span>

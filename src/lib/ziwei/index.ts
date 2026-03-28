@@ -21,7 +21,6 @@ export { getHoroscope }
 
 // Re-export modules (legacy, for backward compatibility)
 export * from './calendar'
-export * from './trueSolarTime'
 export * from './palace'
 export * from './stars'
 export * from './constants'

@@ -1,25 +1,22 @@
 import { Link } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 import { Button } from '../components/common/Button'
 
 export function Home() {
-  const { t } = useTranslation()
-
   const features = [
     {
       icon: '🤖',
-      titleKey: 'home.features.aiMasters.title',
-      descKey: 'home.features.aiMasters.desc',
+      title: '多風格 AI 命理師',
+      desc: '8 種不同解盤風格，從傳統道長到台式神婆任選',
     },
     {
       icon: '📚',
-      titleKey: 'home.features.education.title',
-      descKey: 'home.features.education.desc',
+      title: '完整科普教學',
+      desc: '新手也能看懂的紫微斗數入門指南',
     },
     {
       icon: '🔒',
-      titleKey: 'home.features.privacy.title',
-      descKey: 'home.features.privacy.desc',
+      title: '隱私保護',
+      desc: '純本地運算，資料不上傳，無需註冊',
     },
   ]
 
@@ -36,17 +33,17 @@ export function Home() {
           <div className="text-center">
             {/* Main title */}
             <h1 className="font-serif text-5xl md:text-7xl text-primary mb-6">
-              {t('home.hero.title')}
+              紫微星盤
             </h1>
             <p className="text-xl md:text-2xl text-ink/70 mb-10">
-              {t('home.hero.subtitle')}
+              探索您的命運地圖
             </p>
 
             {/* CTA Button */}
             <div>
               <Link to="/calculator">
                 <Button size="lg" variant="primary">
-                  {t('home.hero.cta')}
+                  立即排盤
                 </Button>
               </Link>
             </div>
@@ -67,9 +64,9 @@ export function Home() {
               >
                 <div className="text-4xl mb-4">{feature.icon}</div>
                 <h3 className="font-serif text-xl text-primary mb-2">
-                  {t(feature.titleKey)}
+                  {feature.title}
                 </h3>
-                <p className="text-ink/60">{t(feature.descKey)}</p>
+                <p className="text-ink/60">{feature.desc}</p>
               </div>
             ))}
           </div>

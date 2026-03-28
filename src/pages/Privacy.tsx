@@ -1,12 +1,8 @@
-import { useTranslation } from 'react-i18next'
-
 export function Privacy() {
-  const { t } = useTranslation()
-
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="font-serif text-4xl text-primary text-center mb-8">
-        {t('nav.privacy')}
+        隱私政策
       </h1>
 
       <div className="bg-white rounded-lg shadow-classical p-8 prose prose-lg max-w-none">
@@ -21,7 +17,7 @@ export function Privacy() {
           <li>計算後的命盤資料</li>
           <li>AI 對話記錄</li>
           <li>您的 OpenAI API Key</li>
-          <li>介面偏好設定（語言、主題）</li>
+          <li>介面偏好設定（主題）</li>
         </ul>
 
         <h2 className="font-serif text-2xl text-primary mt-8">API Key 安全提醒</h2>

@@ -1,4 +1,3 @@
-import { useTranslation } from 'react-i18next'
 import type { Palace, Star } from '../../types'
 
 interface PalaceCellProps {
@@ -8,8 +7,6 @@ interface PalaceCellProps {
 }
 
 export function PalaceCell({ palace, isLifePalace, isBodyPalace }: PalaceCellProps) {
-  const { t } = useTranslation()
-
   return (
     <div
       className={`

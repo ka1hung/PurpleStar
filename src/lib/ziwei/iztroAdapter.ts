@@ -69,7 +69,6 @@ export function calculateChartWithIztro(birthData: BirthData): Chart {
   // Parse birth time
   const [hourStr, minuteStr] = birthTime.split(':')
   const hour = parseInt(hourStr, 10)
-  const minute = parseInt(minuteStr, 10)
 
   // Format date for iztro (YYYY-M-D)
   const year = birthDate.getFullYear()
@@ -141,9 +140,6 @@ export function calculateChartWithIztro(birthData: BirthData): Chart {
     hourGanZhi: `${rawChinese.hourly[0]}${rawChinese.hourly[1]}`,
   }
 
-  // Format time string
-  const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-
   // Create chart
   const chart: Chart = {
     id: generateChartId(),
@@ -153,11 +149,6 @@ export function calculateChartWithIztro(birthData: BirthData): Chart {
     lifePalacePosition,
     bodyPalacePosition,
     palaces,
-    trueSolarTime: {
-      original: timeStr,
-      corrected: timeStr,
-      difference: 0,
-    },
     mingZhu: astrolabe.soul,
     shenZhu: astrolabe.body,
     createdAt: new Date(),

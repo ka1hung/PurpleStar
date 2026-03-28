@@ -1,9 +1,6 @@
 import { Link } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
 
 export function Footer() {
-  const { t } = useTranslation()
-
   return (
     <footer className="bg-ink text-cream/80">
       {/* Decorative top border */}
@@ -18,7 +15,7 @@ export function Footer() {
                 <span className="text-gold font-serif text-xl">紫</span>
               </div>
               <span className="font-serif text-2xl text-cream">
-                {t('common.appName')}
+                紫微星盤
               </span>
             </div>
             <p className="text-cream/60 max-w-md">
@@ -33,17 +30,17 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link to="/" className="hover:text-gold transition-colors">
-                  {t('nav.home')}
+                  首頁
                 </Link>
               </li>
               <li>
                 <Link to="/calculator" className="hover:text-gold transition-colors">
-                  {t('nav.calculator')}
+                  命盤計算
                 </Link>
               </li>
               <li>
                 <Link to="/education" className="hover:text-gold transition-colors">
-                  {t('nav.education')}
+                  科普教學
                 </Link>
               </li>
             </ul>
@@ -55,17 +52,17 @@ export function Footer() {
             <ul className="space-y-2">
               <li>
                 <Link to="/about" className="hover:text-gold transition-colors">
-                  {t('nav.about')}
+                  關於
                 </Link>
               </li>
               <li>
                 <Link to="/privacy" className="hover:text-gold transition-colors">
-                  {t('nav.privacy')}
+                  隱私政策
                 </Link>
               </li>
               <li>
                 <Link to="/disclaimer" className="hover:text-gold transition-colors">
-                  {t('nav.disclaimer')}
+                  免責聲明
                 </Link>
               </li>
               <li>
@@ -92,7 +89,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="mt-12 pt-8 border-t border-cream/10 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
           <p className="text-cream/40 text-sm">
-            {t('footer.copyright')} · {t('footer.disclaimer')}
+            © 2024 紫微星盤 · 命理僅供參考
           </p>
           <p className="text-cream/40 text-sm">
             Made with ❤️ for Chinese Astrology

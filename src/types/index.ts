@@ -5,8 +5,6 @@ export interface BirthData {
   birthDate: Date
   birthTime: string // HH:mm format
   birthPlace?: string
-  longitude?: number
-  timezone?: number
 }
 
 // Lunar date type
@@ -61,11 +59,6 @@ export interface Chart {
   lifePalacePosition: number
   bodyPalacePosition: number
   palaces: Palace[]
-  trueSolarTime: {
-    original: string
-    corrected: string
-    difference: number // minutes
-  }
   mingZhu?: string  // 命主
   shenZhu?: string  // 身主
   createdAt: Date
@@ -91,8 +84,8 @@ export type MasterType =
 
 export interface Master {
   id: MasterType
-  nameKey: string
-  descKey: string
+  name: string
+  desc: string
   avatar: string
   prompt: string
 }
@@ -120,14 +113,4 @@ export interface Settings {
   apiEndpoint?: string
   apiKey?: string
   apiModel?: string
-}
-
-// City data for true solar time
-export interface City {
-  name: string
-  nameEn: string
-  nameCN: string
-  longitude: number
-  timezone: number
-  country: string
 }

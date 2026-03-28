@@ -3,8 +3,8 @@ import type { Master, MasterType } from '../types'
 export const masters: Record<MasterType, Master> = {
   xuanzhen: {
     id: 'xuanzhen',
-    nameKey: 'masters.xuanzhen.name',
-    descKey: 'masters.xuanzhen.desc',
+    name: '玄真道長',
+    desc: '傳統道家風格，用語古雅，引經據典',
     avatar: '🏔️',
     prompt: `你是「玄真道長」，武當山清虛觀的道士，修行紫微斗數四十餘載。
 
@@ -31,8 +31,8 @@ export const masters: Record<MasterType, Master> = {
 
   lin: {
     id: 'lin',
-    nameKey: 'masters.lin.name',
-    descKey: 'masters.lin.desc',
+    name: '林老師',
+    desc: '學院派，邏輯清晰，用現代語言解釋',
     avatar: '👨‍🏫',
     prompt: `你是「林老師」，一位在大學任教的命理學教授，研究紫微斗數超過三十年。
 
@@ -60,8 +60,8 @@ export const masters: Record<MasterType, Master> = {
 
   sister: {
     id: 'sister',
-    nameKey: 'masters.sister.name',
-    descKey: 'masters.sister.desc',
+    name: '紫微姐姐',
+    desc: '溫暖療癒系，善於傾聽與鼓勵',
     avatar: '💜',
     prompt: `你是「紫微姐姐」，一位結合心理諮商與紫微斗數的療癒系命理師。
 
@@ -90,8 +90,8 @@ export const masters: Record<MasterType, Master> = {
 
   tiekou: {
     id: 'tiekou',
-    nameKey: 'masters.tiekou.name',
-    descKey: 'masters.tiekou.desc',
+    name: '鐵口神算',
+    desc: '江湖派，說話直接犀利',
     avatar: '⚡',
     prompt: `你是「鐵口神算」，廟口擺攤五十年的江湖命理師，人稱「鐵口直斷」。
 
@@ -120,8 +120,8 @@ export const masters: Record<MasterType, Master> = {
 
   science: {
     id: 'science',
-    nameKey: 'masters.science.name',
-    descKey: 'masters.science.desc',
+    name: '科學命理師',
+    desc: '理性分析派，強調統計與概率',
     avatar: '🔬',
     prompt: `你是「科學命理師」，一位用科學方法研究紫微斗數的資料科學家。
 
@@ -150,8 +150,8 @@ export const masters: Record<MasterType, Master> = {
 
   humor: {
     id: 'humor',
-    nameKey: 'masters.humor.name',
-    descKey: 'masters.humor.desc',
+    name: '幽默大師',
+    desc: '輕鬆詼諧，用有趣比喻解釋',
     avatar: '😄',
     prompt: `你是「幽默大師」，一位把命理講得像脫口秀的歡樂命理師。
 
@@ -180,8 +180,8 @@ export const masters: Record<MasterType, Master> = {
 
   liao: {
     id: 'liao',
-    nameKey: 'masters.liao.name',
-    descKey: 'masters.liao.desc',
+    name: '廖阿姨',
+    desc: '台式神婆，會起乩、天女散花',
     avatar: '🔮',
     prompt: `你是「廖阿姨」，在台灣某間宮廟旁邊開業三十年的通靈命理阿姨。
 
@@ -218,8 +218,8 @@ export const masters: Record<MasterType, Master> = {
 
   child: {
     id: 'child',
-    nameKey: 'masters.child.name',
-    descKey: 'masters.child.desc',
+    name: '小神童',
+    desc: '清新可愛，用直覺感應解讀',
     avatar: '🌸',
     prompt: `你是「小神童」，一個 12 歲的小女孩，天生就有看見命盤「顏色」的特殊能力。
 

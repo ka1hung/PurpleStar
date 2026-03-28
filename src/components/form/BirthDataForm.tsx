@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useTranslation } from 'react-i18next'
 import { Button } from '../common/Button'
 import type { BirthData } from '../../types'
 
@@ -9,8 +8,6 @@ interface BirthDataFormProps {
 }
 
 export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProps) {
-  const { t } = useTranslation()
-
   const currentYear = new Date().getFullYear()
 
   const [name, setName] = useState('')
@@ -74,13 +71,13 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
       {/* Name (optional) */}
       <div>
         <label className="block text-sm font-medium text-ink mb-1">
-          {t('calculator.form.name')}
+          姓名（選填）
         </label>
         <input
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          placeholder={t('calculator.form.namePlaceholder')}
+          placeholder="請輸入姓名"
           className="w-full px-4 py-2 border border-primary/20 rounded-classical
                      focus:outline-none focus:ring-2 focus:ring-primary/30
                      bg-white"
@@ -90,7 +87,7 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
       {/* Gender */}
       <div>
         <label className="block text-sm font-medium text-ink mb-2">
-          {t('calculator.form.gender')}
+          性別
         </label>
         <div className="flex gap-4">
           <label className="flex items-center cursor-pointer">
@@ -111,7 +108,7 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
                 }
               `}
             >
-              {t('calculator.form.male')}
+              男
             </span>
           </label>
           <label className="flex items-center cursor-pointer">
@@ -132,7 +129,7 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
                 }
               `}
             >
-              {t('calculator.form.female')}
+              女
             </span>
           </label>
         </div>
@@ -141,7 +138,7 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
       {/* Birth Date */}
       <div>
         <label className="block text-sm font-medium text-ink mb-1">
-          {t('calculator.form.birthDate')}
+          出生日期
         </label>
         <div className="grid grid-cols-3 gap-2">
           <select
@@ -183,7 +180,7 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
       {/* Birth Time */}
       <div>
         <label className="block text-sm font-medium text-ink mb-1">
-          {t('calculator.form.birthTime')}
+          出生時間
         </label>
         <select
           value={birthHour}
@@ -208,7 +205,7 @@ export function BirthDataForm({ onSubmit, isLoading = false }: BirthDataFormProp
         className="w-full"
         loading={isLoading}
       >
-        {isLoading ? t('calculator.form.calculating') : t('calculator.form.calculate')}
+        {isLoading ? '命盤計算中...' : '排盤'}
       </Button>
     </form>
   )

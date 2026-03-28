@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react'
-import { useTranslation } from 'react-i18next'
 import { Link } from 'react-router-dom'
 import { useAppStore } from '../../store'
 import { MasterSelector } from './MasterSelector'
@@ -18,7 +17,6 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({ chart }: ChatWindowProps) {
-  const { t } = useTranslation()
   const { settings, selectedMaster, setSelectedMaster } = useAppStore()
 
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -149,8 +147,8 @@ export function ChatWindow({ chart }: ChatWindowProps) {
           <div className="flex items-center gap-3">
             <span className="text-2xl">{master.avatar}</span>
             <div className="text-left">
-              <p className="font-medium text-ink">{t(master.nameKey)}</p>
-              <p className="text-xs text-ink/50">{t(master.descKey)}</p>
+              <p className="font-medium text-ink">{master.name}</p>
+              <p className="text-xs text-ink/50">{master.desc}</p>
             </div>
           </div>
           <svg
@@ -182,11 +180,11 @@ export function ChatWindow({ chart }: ChatWindowProps) {
           <div className="text-center py-8">
             <div className="text-5xl mb-4">{master.avatar}</div>
             <p className="text-ink/60">
-              {t(master.nameKey)} 準備為您解讀命盤
+              {master.name} 準備為您解讀命盤
             </p>
             {/* Suggested questions */}
             <div className="mt-6">
-              <p className="text-sm text-ink/40 mb-2">{t('chat.suggestedQuestions')}</p>
+              <p className="text-sm text-ink/40 mb-2">您可以這樣問</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {suggestedQuestions.slice(0, 4).map((q, i) => (
                   <button
@@ -222,7 +220,7 @@ export function ChatWindow({ chart }: ChatWindowProps) {
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">{master.avatar}</span>
                   <span className="text-sm font-medium text-primary">
-                    {t(master.nameKey)}
+                    {master.name}
                   </span>
                 </div>
               )}
@@ -242,7 +240,7 @@ export function ChatWindow({ chart }: ChatWindowProps) {
               <div className="flex items-center gap-2 mb-2">
                 <span className="text-lg">{master.avatar}</span>
                 <span className="text-sm font-medium text-primary">
-                  {t(master.nameKey)}
+                  {master.name}
                 </span>
               </div>
               <MarkdownContent content={streamingText} />
@@ -256,7 +254,7 @@ export function ChatWindow({ chart }: ChatWindowProps) {
             <div className="bg-white border border-primary/10 rounded-lg px-4 py-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">{master.avatar}</span>
-                <span className="text-sm text-ink/60">{t('chat.thinking')}</span>
+                <span className="text-sm text-ink/60">思考中...</span>
                 <div className="flex gap-1">
                   <span className="w-2 h-2 bg-primary/40 rounded-full animate-bounce" />
                   <span className="w-2 h-2 bg-primary/40 rounded-full animate-bounce delay-100" />
@@ -293,7 +291,7 @@ export function ChatWindow({ chart }: ChatWindowProps) {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder={t('chat.inputPlaceholder')}
+            placeholder="請輸入您想詢問的問題..."
             disabled={isLoading}
             className="flex-1 min-w-0 px-4 py-2 border border-primary/20 rounded-classical
                        focus:outline-none focus:ring-2 focus:ring-primary/30
@@ -307,7 +305,7 @@ export function ChatWindow({ chart }: ChatWindowProps) {
                        disabled:opacity-50 disabled:cursor-not-allowed
                        whitespace-nowrap"
           >
-            {t('chat.send')}
+            發送
           </button>
         </div>
       </div>
