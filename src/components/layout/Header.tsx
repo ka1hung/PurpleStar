@@ -8,6 +8,7 @@ export function Header() {
   const navItems = [
     { path: '/', label: '首頁' },
     { path: '/calculator', label: '命盤計算' },
+    { path: '/comparison', label: '合盤比較' },
     { path: '/education', label: '科普教學' },
     { path: '/about', label: '關於' },
   ]

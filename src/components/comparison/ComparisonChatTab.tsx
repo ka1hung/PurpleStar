@@ -1,57 +1,57 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAppStore } from '../../store'
-import { MasterSelector } from './MasterSelector'
-import { MarkdownContent } from './MarkdownContent'
+import { MasterSelector } from '../chat/MasterSelector'
+import { MarkdownContent } from '../chat/MarkdownContent'
 import { getMasterById } from '../../data/prompts'
 import {
   sendChatMessage,
-  formatChartForAI,
-  buildSystemPrompt,
-  suggestedQuestions,
+  formatComparisonForAI,
+  buildComparisonSystemPrompt,
+  getComparisonSuggestedQuestions,
 } from '../../lib/openai'
-import type { Chart, ChatMessage, ChatSession } from '../../types'
+import type { Chart, ChartComparison, ChatMessage, ChatSession } from '../../types'
 
-interface ChatWindowProps {
-  chart: Chart
-  comparisonId?: string
-  onSessionCreated?: (session: ChatSession) => void
+interface ComparisonChatTabProps {
+  comparison: ChartComparison
+  charts: Chart[]
 }
 
-export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindowProps) {
-  const { settings, selectedMaster, setSelectedMaster, addChatSession, getLatestChartSession, deleteChartSessions } = useAppStore()
+export function ComparisonChatTab({
+  comparison,
+  charts,
+}: ComparisonChatTabProps) {
+  const { settings, selectedMaster, setSelectedMaster, addChatSession, getLatestComparisonSession, deleteComparisonSessions } = useAppStore()
 
   const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [sessionId, setSessionId] = useState<string>('')
+  const [currentSessionId, setCurrentSessionId] = useState<string>('')
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [streamingText, setStreamingText] = useState('')
   const [showMasterSelector, setShowMasterSelector] = useState(false)
 
-  // Check if API is configured
   const isApiConfigured = settings.apiEndpoint && settings.apiKey && settings.apiModel
+
+  // 進入時自動加載該比較的最新對話
+  useEffect(() => {
+    const latestSession = getLatestComparisonSession(comparison.id)
+    if (latestSession) {
+      setMessages(latestSession.messages)
+      setCurrentSessionId(latestSession.id)
+    } else {
+      setMessages([])
+      setCurrentSessionId(`session-${Date.now()}`)
+    }
+  }, [comparison.id, getLatestComparisonSession])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
 
-  // 進入時自動加載該命盤的最新對話
-  useEffect(() => {
-    const latestSession = getLatestChartSession(chart.id)
-    if (latestSession) {
-      setMessages(latestSession.messages)
-      setSessionId(latestSession.id)
-    } else {
-      setMessages([])
-      setSessionId(`session-${Date.now()}`)
-    }
-  }, [chart.id, getLatestChartSession])
-
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Check if user has scrolled up
   const handleScroll = () => {
     if (messagesContainerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current
@@ -60,7 +60,25 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
     }
   }
 
-  const master = getMasterById(selectedMaster)
+  const handleClearOldSessions = () => {
+    if (confirm('確定要刪除所有舊對話紀錄嗎？目前對話將被保存。')) {
+      // 先保存当前对话
+      if (messages.length > 0) {
+        const currentSession: ChatSession = {
+          id: currentSessionId,
+          comparisonId: comparison.id,
+          masterId: selectedMaster,
+          messages: messages,
+          createdAt: new Date(),
+        }
+        addChatSession(currentSession)
+      }
+      // 再删除所有旧对话
+      deleteComparisonSessions(comparison.id)
+      setMessages([])
+      setCurrentSessionId(`session-${Date.now()}`)
+    }
+  }
 
   const handleSelectMaster = (masterId: typeof selectedMaster) => {
     setSelectedMaster(masterId)
@@ -83,8 +101,14 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
     setStreamingText('')
 
     try {
-      const chartContext = formatChartForAI(chart)
-      const systemPrompt = buildSystemPrompt(selectedMaster, chartContext)
+      const comparisonMembers = comparison.members.map((member) => ({
+        chart: charts.find((c) => c.id === member.chartId)!,
+        role: member.role,
+        label: member.label,
+      }))
+
+      const comparisonContext = formatComparisonForAI(comparisonMembers)
+      const systemPrompt = buildComparisonSystemPrompt(selectedMaster, comparisonContext)
 
       const apiMessages = [
         { role: 'system' as const, content: systemPrompt },
@@ -118,9 +142,8 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
 
       // 只在取得回應後保存對話
       const session: ChatSession = {
-        id: sessionId,
-        chartId: chart.id,
-        comparisonId: comparisonId,
+        id: currentSessionId,
+        comparisonId: comparison.id,
         masterId: selectedMaster,
         messages: updatedMessages,
         createdAt: new Date(),
@@ -144,34 +167,13 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
     setInput(question)
   }
 
-  const handleClearOldSessions = () => {
-    if (confirm('確定要刪除所有舊對話紀錄嗎？目前對話將被保存。')) {
-      // 先保存当前对话
-      if (messages.length > 0) {
-        const currentSession: ChatSession = {
-          id: sessionId,
-          chartId: chart.id,
-          comparisonId: comparisonId,
-          masterId: selectedMaster,
-          messages: messages,
-          createdAt: new Date(),
-        }
-        addChatSession(currentSession)
-      }
-      // 再删除所有旧对话
-      deleteChartSessions(chart.id)
-      setMessages([])
-      setSessionId(`session-${Date.now()}`)
-    }
-  }
-
   if (!isApiConfigured) {
     return (
       <div className="bg-white rounded-lg shadow-classical p-6 text-center">
         <div className="text-5xl mb-4">⚙️</div>
         <h3 className="font-serif text-xl text-primary mb-4">請先設定 AI</h3>
         <p className="text-ink/60 text-sm mb-6">
-          使用 AI 命理諮詢功能前，請先設定 API 路徑、Token 和模型。
+          使用 AI 合盤諮詢功能前，請先設定 API 路徑、Token 和模型。
         </p>
         <Link
           to="/settings"
@@ -184,9 +186,12 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
     )
   }
 
+  const suggestedQuestions = getComparisonSuggestedQuestions(comparison.members)
+  const master = getMasterById(selectedMaster)
+
   return (
-    <div className="bg-white rounded-lg shadow-classical overflow-hidden">
-      {/* Master selector - collapsible */}
+    <div className="bg-white rounded-lg shadow-classical overflow-hidden flex flex-col min-h-screen">
+      {/* Master selector header */}
       <div className="border-b border-primary/10">
         <div className="flex items-center gap-2 p-4">
           <button
@@ -201,12 +206,19 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
               </div>
             </div>
             <svg
-              className={`w-5 h-5 text-ink/40 transition-transform ${showMasterSelector ? 'rotate-180' : ''}`}
+              className={`w-5 h-5 text-ink/40 transition-transform ${
+                showMasterSelector ? 'rotate-180' : ''
+              }`}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
             </svg>
           </button>
 
@@ -225,6 +237,7 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
             </svg>
           </button>
         </div>
+
         {showMasterSelector && (
           <div className="px-4 pb-4">
             <MasterSelector
@@ -236,27 +249,30 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
       </div>
 
       {/* Chat messages */}
-      <div className="relative">
-        <div
-          ref={messagesContainerRef}
-          onScroll={handleScroll}
-          className="h-96 overflow-y-auto p-4 space-y-4 bg-cream/30">
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-cream/30 relative"
+        ref={messagesContainerRef}
+        onScroll={handleScroll}
+      >
         {messages.length === 0 && !streamingText && (
           <div className="text-center py-8">
             <div className="text-5xl mb-4">{master.avatar}</div>
-            <p className="text-ink/60">
-              {master.name} 準備為您解讀命盤
+            <p className="text-ink/60 mb-2">
+              {master.name} 準備為您分析 {comparison.name} 的合盤
             </p>
-            {/* Suggested questions */}
+            <p className="text-sm text-ink/50 mb-6">
+              {comparison.members.length} 人 · 您可以詢問他們之間的關係、相容度或相處建議
+            </p>
+
             <div className="mt-6">
-              <p className="text-sm text-ink/40 mb-2">您可以這樣問</p>
+              <p className="text-sm text-ink/40 mb-3">推薦提問：</p>
               <div className="flex flex-wrap justify-center gap-2">
-                {suggestedQuestions.slice(0, 4).map((q, i) => (
+                {suggestedQuestions.slice(0, 3).map((q, i) => (
                   <button
                     key={i}
                     onClick={() => handleSuggestedQuestion(q)}
                     className="px-3 py-1.5 text-sm bg-white border border-primary/20
-                               rounded-full hover:border-primary/40 transition-all"
+                               rounded-full hover:border-primary/40 transition-all text-left"
                   >
                     {q}
                   </button>
@@ -298,7 +314,6 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
           </div>
         ))}
 
-        {/* Streaming message */}
         {streamingText && (
           <div className="flex justify-start">
             <div className="max-w-[80%] rounded-lg px-4 py-3 bg-white border border-primary/10">
@@ -313,13 +328,12 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
           </div>
         )}
 
-        {/* Loading indicator */}
         {isLoading && !streamingText && (
           <div className="flex justify-start">
             <div className="bg-white border border-primary/10 rounded-lg px-4 py-3">
               <div className="flex items-center gap-2">
                 <span className="text-lg">{master.avatar}</span>
-                <span className="text-sm text-ink/60">思考中...</span>
+                <span className="text-sm text-ink/60">分析中...</span>
                 <div className="flex gap-1">
                   <span className="w-2 h-2 bg-primary/40 rounded-full animate-bounce" />
                   <span className="w-2 h-2 bg-primary/40 rounded-full animate-bounce delay-100" />
@@ -330,10 +344,8 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
           </div>
         )}
 
-          <div ref={messagesEndRef} />
-        </div>
+        <div ref={messagesEndRef} />
 
-        {/* Scroll to bottom button - sticky at bottom right of chat area */}
         {showScrollButton && (
           <button
             onClick={scrollToBottom}
@@ -348,24 +360,24 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
         )}
       </div>
 
-      {/* Input - sticky at bottom for mobile */}
-      <div className="sticky bottom-0 border-t border-primary/10 bg-white chat-input-container">
-        <div className="flex gap-2 items-center p-4 pb-0">
+      {/* Input */}
+      <div className="border-t border-primary/10 bg-white p-4">
+        <div className="flex gap-2">
           <input
             type="text"
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder="請輸入您想詢問的問題..."
+            placeholder="詢問他們之間的關係..."
             disabled={isLoading}
-            className="flex-1 min-w-0 px-4 py-2 border border-primary/20 rounded-classical
+            className="flex-1 px-4 py-2 border border-primary/20 rounded-classical
                        focus:outline-none focus:ring-2 focus:ring-primary/30
                        disabled:opacity-50"
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="flex-shrink-0 px-4 py-2 bg-primary text-cream rounded-classical
+            className="px-4 py-2 bg-primary text-cream rounded-classical
                        hover:bg-primary-dark transition-all
                        disabled:opacity-50 disabled:cursor-not-allowed
                        whitespace-nowrap"

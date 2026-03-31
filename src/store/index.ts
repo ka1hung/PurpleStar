@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { Chart, Settings, ChatSession, MasterType } from '../types'
+import type { Chart, Settings, ChatSession, MasterType, ChartComparison } from '../types'
 
 interface AppState {
   // Charts
@@ -9,6 +9,14 @@ interface AppState {
   addChart: (chart: Chart) => void
   setCurrentChart: (chart: Chart | null) => void
   deleteChart: (id: string) => void
+
+  // Comparisons (multi-chart)
+  comparisons: ChartComparison[]
+  currentComparison: ChartComparison | null
+  addComparison: (comparison: ChartComparison) => void
+  updateComparison: (id: string, updates: Partial<ChartComparison>) => void
+  deleteComparison: (id: string) => void
+  setCurrentComparison: (comparison: ChartComparison | null) => void
 
   // Settings
   settings: Settings
@@ -21,6 +29,10 @@ interface AppState {
   setSelectedMaster: (master: MasterType) => void
   addChatSession: (session: ChatSession) => void
   setCurrentSession: (session: ChatSession | null) => void
+  getLatestComparisonSession: (comparisonId: string) => ChatSession | null
+  getLatestChartSession: (chartId: string) => ChatSession | null
+  deleteComparisonSessions: (comparisonId: string) => void
+  deleteChartSessions: (chartId: string) => void
 
   // UI State
   isCalculating: boolean
@@ -29,7 +41,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // Charts
       charts: [],
       currentChart: null,
@@ -45,6 +57,33 @@ export const useAppStore = create<AppState>()(
           currentChart:
             state.currentChart?.id === id ? null : state.currentChart,
         })),
+
+      // Comparisons
+      comparisons: [],
+      currentComparison: null,
+      addComparison: (comparison) =>
+        set((state) => ({
+          comparisons: [comparison, ...state.comparisons],
+          currentComparison: comparison,
+        })),
+      updateComparison: (id, updates) =>
+        set((state) => ({
+          comparisons: state.comparisons.map((c) =>
+            c.id === id ? { ...c, ...updates } : c
+          ),
+          currentComparison:
+            state.currentComparison?.id === id
+              ? { ...state.currentComparison, ...updates }
+              : state.currentComparison,
+        })),
+      deleteComparison: (id) =>
+        set((state) => ({
+          comparisons: state.comparisons.filter((c) => c.id !== id),
+          currentComparison:
+            state.currentComparison?.id === id ? null : state.currentComparison,
+        })),
+      setCurrentComparison: (comparison) =>
+        set({ currentComparison: comparison }),
 
       // Settings
       settings: {
@@ -69,15 +108,32 @@ export const useAppStore = create<AppState>()(
           currentSession: session,
         })),
       setCurrentSession: (session) => set({ currentSession: session }),
+      getLatestComparisonSession: (comparisonId) => {
+        const state = get()
+        return state.chatSessions.find((s) => s.comparisonId === comparisonId) || null
+      },
+      getLatestChartSession: (chartId) => {
+        const state = get()
+        return state.chatSessions.find((s) => s.chartId === chartId) || null
+      },
+      deleteComparisonSessions: (comparisonId) =>
+        set((state) => ({
+          chatSessions: state.chatSessions.filter((s) => s.comparisonId !== comparisonId),
+        })),
+      deleteChartSessions: (chartId) =>
+        set((state) => ({
+          chatSessions: state.chatSessions.filter((s) => s.chartId !== chartId),
+        })),
 
       // UI State
       isCalculating: false,
-      setIsCalculating: (value) => set({ isCalculating: value }),
+      setIsCalculating: (value: boolean) => set({ isCalculating: value }),
     }),
     {
       name: 'purple-star-storage',
       partialize: (state) => ({
         charts: state.charts,
+        comparisons: state.comparisons,
         settings: state.settings,
         chatSessions: state.chatSessions,
         selectedMaster: state.selectedMaster,

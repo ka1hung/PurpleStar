@@ -100,7 +100,8 @@ export interface ChatMessage {
 
 export interface ChatSession {
   id: string
-  chartId: string
+  chartId?: string                // 單人對話時使用
+  comparisonId?: string           // 多人合盤對話時使用
   masterId: MasterType
   messages: ChatMessage[]
   createdAt: Date
@@ -113,4 +114,33 @@ export interface Settings {
   apiEndpoint?: string
   apiKey?: string
   apiModel?: string
+}
+
+// Family role types
+export type FamilyRole =
+  | 'self'       // 本人
+  | 'spouse'     // 配偶
+  | 'father'     // 父親
+  | 'mother'     // 母親
+  | 'son'        // 兒子
+  | 'daughter'   // 女兒
+  | 'sibling'    // 兄弟姐妹
+  | 'partner'    // 合作夥伴
+  | 'friend'     // 朋友
+  | 'other'      // 其他
+
+// Comparison member with role
+export interface ComparisonMember {
+  chartId: string
+  role: FamilyRole
+  label?: string  // 自訂標籤，如「大女兒」「小女兒」
+}
+
+// Chart comparison
+export interface ChartComparison {
+  id: string
+  name: string                    // 使用者自訂名稱，如「我們一家四口」
+  members: ComparisonMember[]     // 成員列表（至少 2 個）
+  createdAt: Date
+  updatedAt: Date
 }

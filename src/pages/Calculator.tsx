@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { BirthDataForm } from '../components/form'
 import { ChartGrid, ChartInterpretation } from '../components/chart'
 import { ChatWindow } from '../components/chat'
@@ -11,6 +12,7 @@ export function Calculator() {
   const [isCalculating, setIsCalculating] = useState(false)
   const [showChat, setShowChat] = useState(false)
   const { charts, addChart, deleteChart } = useAppStore()
+  const navigate = useNavigate()
 
   const handleCalculate = async (birthData: BirthData) => {
     setIsCalculating(true)
@@ -35,6 +37,10 @@ export function Calculator() {
     setShowChat(false)
   }
 
+  const handleStartComparison = (chartId: string) => {
+    navigate(`/#/comparison?preselect=${chartId}`)
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <h1 className="font-serif text-4xl text-primary text-center mb-8">
@@ -54,7 +60,7 @@ export function Calculator() {
               <h2 className="font-serif text-xl text-primary mb-4">已儲存的命盤</h2>
               <div className="bg-white rounded-lg border border-primary/20 divide-y divide-primary/10">
                 {charts.map((savedChart) => {
-                  const birthDate = new Date(savedChart.birthData.birthDate) // Ensure it's a Date object
+                  const birthDate = new Date(savedChart.birthData.birthDate)
                   return (
                     <div
                       key={savedChart.id}
@@ -78,20 +84,32 @@ export function Calculator() {
                           {savedChart.fiveElement} · 命宮{savedChart.palaces[savedChart.lifePalacePosition]?.branch}
                         </div>
                       </button>
-                      <button
-                        onClick={() => {
-                          if (confirm('確定要刪除這個命盤嗎？')) {
-                            deleteChart(savedChart.id)
-                          }
-                        }}
-                        className="ml-4 p-2 text-ink/40 hover:text-red-500 transition-colors"
-                        title="刪除"
-                      >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                      </button>
+                      <div className="ml-4 flex gap-2">
+                        <button
+                          onClick={() => handleStartComparison(savedChart.id)}
+                          className="p-2 text-ink/40 hover:text-primary transition-colors"
+                          title="加入合盤"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M12 4.354a4 4 0 110 5.292M15 19H9m6 0a3 3 0 11-6 0m6 0a3 3 0 01-6 0m6 0H9m0-5h6m0 0a2 2 0 11-4 0m4 0a2 2 0 01-4 0" />
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (confirm('確定要刪除這個命盤嗎？')) {
+                              deleteChart(savedChart.id)
+                            }
+                          }}
+                          className="ml-2 p-2 text-ink/40 hover:text-red-500 transition-colors"
+                          title="刪除"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                              d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
                   )
                 })}

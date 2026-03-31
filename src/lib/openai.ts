@@ -1,4 +1,4 @@
-import type { Chart, MasterType } from '../types'
+import type { Chart, MasterType, ChartComparison, ComparisonMember } from '../types'
 import { getMasterById } from '../data/prompts'
 import { getHoroscope } from './ziwei'
 import { TRANSFORMATION_TABLE } from './ziwei/constants'
@@ -382,3 +382,266 @@ export const suggestedQuestions = [
   '我的個性優缺點是什麼？',
   '適合我的職業方向？',
 ]
+
+/**
+ * Infer relationship type from roles
+ */
+function inferRelationshipTypes(
+  members: Array<{ role: string; label?: string }>
+): string {
+  const roles = members.map(m => m.role)
+
+  if (
+    (roles.includes('self') && roles.includes('spouse')) ||
+    (roles.includes('spouse') && roles.includes('self'))
+  ) {
+    return 'romance'
+  }
+
+  if (roles.includes('father') || roles.includes('mother')) {
+    if (roles.includes('son') || roles.includes('daughter')) {
+      return 'family'
+    }
+  }
+
+  if (
+    roles.filter(r => r === 'daughter' || r === 'son').length >= 2 ||
+    roles.includes('sibling')
+  ) {
+    return 'family'
+  }
+
+  if (roles.includes('partner')) {
+    return 'business'
+  }
+
+  if (roles.includes('friend')) {
+    return 'friendship'
+  }
+
+  return 'custom'
+}
+
+/**
+ * Format multiple charts for comparison AI context
+ */
+export function formatComparisonForAI(
+  charts: Array<{ chart: Chart; role: string; label?: string }>
+): string {
+  const relationshipType = inferRelationshipTypes(
+    charts.map(c => ({ role: c.role, label: c.label }))
+  )
+
+  const memberSummaries = charts
+    .map((m, idx) => {
+      const chart = m.chart
+      const label = m.label || chart.birthData.name || `成員${idx + 1}`
+      const roleEmoji = {
+        self: '👤',
+        spouse: '💑',
+        father: '👨‍🦳',
+        mother: '👩‍🦳',
+        son: '👦',
+        daughter: '👧',
+        sibling: '👥',
+        partner: '🤝',
+        friend: '🤝',
+        other: '🔮',
+      }[m.role] || '👤'
+
+      // Find key palaces for relationship analysis
+      const lifePalace = chart.palaces.find(p => p.name === '命宮')
+      const spousePalace = chart.palaces.find(p => p.name === '夫妻宮')
+      const childrenPalace = chart.palaces.find(p => p.name === '子女宮')
+      const parentPalace = chart.palaces.find(p => p.name === '父母宮')
+      const careerPalace = chart.palaces.find(p => p.name === '官祿宮')
+      const siblingPalace = chart.palaces.find(p => p.name === '兄弟宮')
+
+      const formatPalace = (palace: any) =>
+        palace
+          ? palace.mainStars.map((s: any) => `${s.name}(${s.brightness || '平'})`).join('、')
+          : '無'
+
+      return `【${roleEmoji} ${label}（${m.role}）】
+性別：${chart.birthData.gender === 'male' ? '男' : '女'}
+出生日期：${new Date(chart.birthData.birthDate).toLocaleDateString('zh-TW')}
+五行局：${chart.fiveElement}
+命主：${chart.mingZhu || '未知'}
+命宮主星：${formatPalace(lifePalace)}
+夫妻宮：${formatPalace(spousePalace)}
+子女宮：${formatPalace(childrenPalace)}
+父母宮：${formatPalace(parentPalace)}
+官祿宮：${formatPalace(careerPalace)}
+兄弟宮：${formatPalace(siblingPalace)}`
+    })
+    .join('\n\n')
+
+  const relationshipGuide = {
+    romance: `
+【分析重點（感情配對）】
+- 命宮主星的性格互補或衝突
+- 夫妻宮的星曜配置與四化
+- 化忌在對方夫妻宮或感情相關宮位的影響
+- 大限流年的吉凶時機`,
+    family: `
+【分析重點（親子/家庭）】
+- 父親的子女宮 vs 子女的父母宮
+- 母親的子女宮 vs 子女的父母宮
+- 兄弟姐妹的兄弟宮互動
+- 教養方式與性格互補
+- 大限時期的親子關係變化`,
+    business: `
+【分析重點（事業合作）】
+- 各人的官祿宮與財帛宮
+- 命宮主星的個性與領導風格
+- 在合作中的角色分工建議
+- 四化的機會與挑戰`,
+    friendship: `
+【分析重點（朋友關係）】
+- 交友宮的互動
+- 性格相容度
+- 共同發展方向`,
+    custom: `
+【分析重點】
+- 綜合各人的命宮特質
+- 重點宮位間的互動',`,
+  }
+
+  return `
+【多人合盤資料】
+${memberSummaries}
+
+${relationshipGuide[relationshipType as keyof typeof relationshipGuide] || relationshipGuide.custom}
+
+【關係分析框架】
+- 關係類型：${
+    {
+      romance: '感情配對',
+      family: '親子/家庭',
+      business: '事業合作',
+      friendship: '朋友',
+      custom: '自訂',
+    }[relationshipType] || '自訂'
+  }
+- 總人數：${charts.length} 人
+- 請根據以上資訊進行深入的交叉分析
+`.trim()
+}
+
+/**
+ * Build system prompt for comparison (multi-chart) AI chat
+ */
+export function buildComparisonSystemPrompt(
+  masterId: MasterType,
+  comparisonContext: string
+): string {
+  const master = getMasterById(masterId)
+
+  const now = new Date()
+  const dateStr = now.toLocaleDateString('zh-TW', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    weekday: 'long',
+  })
+
+  return `${master.prompt}
+
+【今天日期】${dateStr}
+
+你正在進行一場「多人合盤對比分析」。這不是單人排盤，而是分析多個人的命盤之間的互動、相容度與關係動態。以下是合盤資訊：
+
+${comparisonContext}
+
+【重要：合盤分析要點】
+1. 始終保持你的角色風格
+2. 分析時聚焦於人與人之間的互動，而非單人特質
+3. 清楚區分：
+   - 各人的「本命特質」（命宮、五行局等）
+   - 關係中的「互補或衝突」（星曜配置）
+   - 「四化飛星」對對方的影響
+4. 對夫妻/親子/合作關係，要分別看對應的宮位：
+   - 夫妻關係 → 看雙方「夫妻宮」
+   - 親子關係 → 看父母的「子女宮」對應子女的「父母宮」
+   - 手足關係 → 看雙方「兄弟宮」
+   - 事業合作 → 看雙方「官祿宮」與「財帛宮」
+5. 一人的化忌落在另一人的重點宮位，需特別注意
+6. 提醒對方適合的相處模式、溝通方式
+7. 若涉及多人（3人以上），要分析整個「關係網絡」
+8. 適時提醒命理僅供參考，關係經營最重要的還是雙方努力
+
+【用戶可能的提問方式】
+- 「我和 XXX 的感情配對度如何？」
+- 「我們適合合作嗎？」
+- 「我跟大女兒的親子關係怎麼經營？」
+- 「兩個女兒之間會不會吵架？」
+- 「我們家今年的整體運勢如何？」
+請根據提問識別涉及的人物，並專注於他們之間的互動分析。
+`
+}
+
+/**
+ * Get suggested questions based on relationship type and member count
+ */
+export function getComparisonSuggestedQuestions(
+  members: Array<{ role: string; label?: string }>,
+  relationshipType?: string
+): string[] {
+  const inferredType =
+    relationshipType || inferRelationshipTypes(members)
+
+  const baseQuestions: Record<string, string[]> = {
+    romance: [
+      // 感情配對只適用於 2 人
+      members.length === 2
+        ? `我和${members[1]?.label || '對方'}的感情配對度如何？`
+        : `我們的感情動力如何？`,
+      `相處上會有哪些摩擦？`,
+      `最適合我們的相處模式是什麼？`,
+      `今年感情運勢怎麼走？`,
+      members.length === 2 ? `我們適合結婚嗎？` : `如何增進感情？`,
+    ],
+    family: [
+      `我們一家人的性格互動如何？`,
+      members.length === 2
+        ? `我和${members[1]?.label || '對方'}的親子關係怎麼經營？`
+        : `家族中各成員的角色和互動模式是什麼？`,
+      `${
+        members.filter(m => m.role === 'daughter' || m.role === 'son').length >= 2
+          ? '孩子們之間會怎樣相處？'
+          : '教養上需要注意什麼？'
+      }`,
+      `我們家今年的整體運勢如何？`,
+      `家庭成員之間如何更好地溝通和協調？`,
+    ],
+    business: [
+      members.length === 2
+        ? `我和${members[1]?.label || '對方'}適合一起合作嗎？`
+        : `這個團隊適合一起合作嗎？`,
+      `各自適合擔任什麼角色？`,
+      `合作的最佳時機是什麼時候？`,
+      `如何避免合作中的衝突？`,
+      `我們的優勢和弱點各是什麼？`,
+    ],
+    friendship: [
+      members.length === 2
+        ? `我和${members[1]?.label || '對方'}的友誼相容度如何？`
+        : `這個朋友圈的和諧度怎麼樣？`,
+      `我們會有什麼共同話題？`,
+      `相處中要注意什麼？`,
+      `友誼能長久嗎？`,
+      `如何維持這段友誼？`,
+    ],
+    other: [
+      members.length === 2
+        ? `我和${members[1]?.label || '對方'}的互動動力如何？`
+        : `多人間會怎樣相處？`,
+      `各有什麼特質？`,
+      `整體氛圍如何？`,
+      `有什麼需要注意的地方？`,
+      `未來如何發展？`,
+    ],
+  }
+
+  return baseQuestions[inferredType] || baseQuestions.other
+}
