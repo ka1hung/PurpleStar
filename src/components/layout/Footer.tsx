@@ -11,9 +11,41 @@ export function Footer() {
           {/* Brand */}
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-                <span className="text-gold font-serif text-xl">紫</span>
-              </div>
+              <svg className="w-10 h-10" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <radialGradient id="fbg" cx="50%" cy="50%" r="70%">
+                    <stop offset="0%" stopColor="#1a1a3e"/>
+                    <stop offset="100%" stopColor="#060614"/>
+                  </radialGradient>
+                  <linearGradient id="fgold" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#ffe8a0"/>
+                    <stop offset="100%" stopColor="#e8b830"/>
+                  </linearGradient>
+                </defs>
+                <rect width="512" height="512" rx="100" fill="url(#fbg)"/>
+                <circle cx="256" cy="256" r="195" fill="none" stroke="#1e2858" strokeWidth="36"/>
+                <circle cx="256" cy="256" r="213" fill="none" stroke="#3a5a9a" strokeWidth="2" opacity="0.6"/>
+                <circle cx="256" cy="256" r="177" fill="none" stroke="#3a5a9a" strokeWidth="2" opacity="0.6"/>
+                <g stroke="#5ab4ff" strokeWidth="3" opacity="0.7">
+                  <line x1="195" y1="210" x2="220" y2="175"/><line x1="220" y1="175" x2="260" y2="155"/>
+                  <line x1="260" y1="155" x2="300" y2="168"/><line x1="300" y1="168" x2="318" y2="200"/>
+                  <line x1="195" y1="210" x2="210" y2="248"/><line x1="245" y1="230" x2="275" y2="245"/>
+                  <line x1="235" y1="280" x2="275" y2="285"/>
+                </g>
+                <g fill="#7acaff">
+                  <circle cx="220" cy="175" r="7"/><circle cx="260" cy="155" r="6"/>
+                  <circle cx="300" cy="168" r="7"/><circle cx="195" cy="210" r="6"/>
+                  <circle cx="318" cy="200" r="7"/><circle cx="245" cy="230" r="6"/>
+                  <circle cx="275" cy="245" r="6"/><circle cx="210" cy="248" r="6"/>
+                  <circle cx="235" cy="280" r="6"/><circle cx="275" cy="285" r="5"/>
+                </g>
+                <g transform="translate(265,195)">
+                  <polygon points="0,-22 5,-6 22,0 5,6 0,22 -5,6 -22,0 -5,-6" fill="url(#fgold)"/>
+                </g>
+                <g transform="translate(210,225)">
+                  <polygon points="0,-14 3,-4 14,0 3,4 0,14 -3,4 -14,0 -3,-4" fill="url(#fgold)" opacity="0.85"/>
+                </g>
+              </svg>
               <span className="font-serif text-2xl text-cream">
                 紫微星盤
               </span>
