@@ -1,0 +1,29 @@
+{
+  "name": "紫微星盤 Purple Star Astrology",
+  "short_name": "紫微星盤",
+  "description": "免費紫微斗數命盤計算，8種AI命理師風格",
+  "start_url": "/PurpleStar/",
+  "scope": "/PurpleStar/",
+  "display": "standalone",
+  "background_color": "#FDF5E6",
+  "theme_color": "#8B0000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
