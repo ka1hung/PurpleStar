@@ -5,8 +5,8 @@
   "start_url": "/PurpleStar/",
   "scope": "/PurpleStar/",
   "display": "standalone",
-  "background_color": "#0f0f2a",
-  "theme_color": "#1a1a3e",
+  "background_color": "#FDF5E6",
+  "theme_color": "#8B0000",
   "orientation": "portrait",
   "icons": [
     {
