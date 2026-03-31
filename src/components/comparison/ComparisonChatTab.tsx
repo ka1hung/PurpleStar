@@ -190,7 +190,7 @@ export function ComparisonChatTab({
   const master = getMasterById(selectedMaster)
 
   return (
-    <div className="bg-white rounded-lg shadow-classical overflow-hidden flex flex-col min-h-screen">
+    <div className="bg-white rounded-lg shadow-classical overflow-hidden flex flex-col h-[80vh]">
       {/* Master selector header */}
       <div className="border-b border-primary/10">
         <div className="flex items-center gap-2 p-4">
@@ -249,102 +249,104 @@ export function ComparisonChatTab({
       </div>
 
       {/* Chat messages */}
-      <div
-        className="flex-1 overflow-y-auto p-4 space-y-4 bg-cream/30 relative"
-        ref={messagesContainerRef}
-        onScroll={handleScroll}
-      >
-        {messages.length === 0 && !streamingText && (
-          <div className="text-center py-8">
-            <div className="text-5xl mb-4">{master.avatar}</div>
-            <p className="text-ink/60 mb-2">
-              {master.name} 準備為您分析 {comparison.name} 的合盤
-            </p>
-            <p className="text-sm text-ink/50 mb-6">
-              {comparison.members.length} 人 · 您可以詢問他們之間的關係、相容度或相處建議
-            </p>
+      <div className="flex-1 relative min-h-0">
+        <div
+          ref={messagesContainerRef}
+          onScroll={handleScroll}
+          className="h-full overflow-y-auto p-4 space-y-4 bg-cream/30"
+        >
+          {messages.length === 0 && !streamingText && (
+            <div className="text-center py-8">
+              <div className="text-5xl mb-4">{master.avatar}</div>
+              <p className="text-ink/60 mb-2">
+                {master.name} 準備為您分析 {comparison.name} 的合盤
+              </p>
+              <p className="text-sm text-ink/50 mb-6">
+                {comparison.members.length} 人 · 您可以詢問他們之間的關係、相容度或相處建議
+              </p>
 
-            <div className="mt-6">
-              <p className="text-sm text-ink/40 mb-3">推薦提問：</p>
-              <div className="flex flex-wrap justify-center gap-2">
-                {suggestedQuestions.slice(0, 3).map((q, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleSuggestedQuestion(q)}
-                    className="px-3 py-1.5 text-sm bg-white border border-primary/20
-                               rounded-full hover:border-primary/40 transition-all text-left"
-                  >
-                    {q}
-                  </button>
-                ))}
+              <div className="mt-6">
+                <p className="text-sm text-ink/40 mb-3">推薦提問：</p>
+                <div className="flex flex-wrap justify-center gap-2">
+                  {suggestedQuestions.slice(0, 3).map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSuggestedQuestion(q)}
+                      className="px-3 py-1.5 text-sm bg-white border border-primary/20
+                                 rounded-full hover:border-primary/40 transition-all text-left"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {messages.map((message) => (
-          <div
-            key={message.id}
-            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
-          >
+          {messages.map((message) => (
             <div
-              className={`
-                max-w-[80%] rounded-lg px-4 py-3
-                ${
-                  message.role === 'user'
-                    ? 'bg-primary text-cream'
-                    : 'bg-white border border-primary/10'
-                }
-              `}
+              key={message.id}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
             >
-              {message.role === 'assistant' && (
+              <div
+                className={`
+                  max-w-[80%] rounded-lg px-4 py-3
+                  ${
+                    message.role === 'user'
+                      ? 'bg-primary text-cream'
+                      : 'bg-white border border-primary/10'
+                  }
+                `}
+              >
+                {message.role === 'assistant' && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-lg">{master.avatar}</span>
+                    <span className="text-sm font-medium text-primary">
+                      {master.name}
+                    </span>
+                  </div>
+                )}
+                {message.role === 'assistant' ? (
+                  <MarkdownContent content={message.content} />
+                ) : (
+                  <p className="whitespace-pre-wrap">{message.content}</p>
+                )}
+              </div>
+            </div>
+          ))}
+
+          {streamingText && (
+            <div className="flex justify-start">
+              <div className="max-w-[80%] rounded-lg px-4 py-3 bg-white border border-primary/10">
                 <div className="flex items-center gap-2 mb-2">
                   <span className="text-lg">{master.avatar}</span>
                   <span className="text-sm font-medium text-primary">
                     {master.name}
                   </span>
                 </div>
-              )}
-              {message.role === 'assistant' ? (
-                <MarkdownContent content={message.content} />
-              ) : (
-                <p className="whitespace-pre-wrap">{message.content}</p>
-              )}
-            </div>
-          </div>
-        ))}
-
-        {streamingText && (
-          <div className="flex justify-start">
-            <div className="max-w-[80%] rounded-lg px-4 py-3 bg-white border border-primary/10">
-              <div className="flex items-center gap-2 mb-2">
-                <span className="text-lg">{master.avatar}</span>
-                <span className="text-sm font-medium text-primary">
-                  {master.name}
-                </span>
+                <MarkdownContent content={streamingText} />
               </div>
-              <MarkdownContent content={streamingText} />
             </div>
-          </div>
-        )}
+          )}
 
-        {isLoading && !streamingText && (
-          <div className="flex justify-start">
-            <div className="bg-white border border-primary/10 rounded-lg px-4 py-3">
-              <div className="flex items-center gap-2">
-                <span className="text-lg">{master.avatar}</span>
-                <span className="text-sm text-ink/60">分析中...</span>
-                <div className="flex gap-1">
-                  <span className="w-2 h-2 bg-primary/40 rounded-full animate-bounce" />
-                  <span className="w-2 h-2 bg-primary/40 rounded-full animate-bounce delay-100" />
-                  <span className="w-2 h-2 bg-primary/40 rounded-full animate-bounce delay-200" />
+          {isLoading && !streamingText && (
+            <div className="flex justify-start">
+              <div className="bg-white border border-primary/10 rounded-lg px-4 py-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-lg">{master.avatar}</span>
+                  <span className="text-sm text-ink/60">分析中...</span>
+                  <div className="flex gap-1">
+                    <span className="w-2 h-2 bg-primary/40 rounded-full animate-bounce" />
+                    <span className="w-2 h-2 bg-primary/40 rounded-full animate-bounce delay-100" />
+                    <span className="w-2 h-2 bg-primary/40 rounded-full animate-bounce delay-200" />
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
 
-        <div ref={messagesEndRef} />
+          <div ref={messagesEndRef} />
+        </div>
 
         {showScrollButton && (
           <button
@@ -361,8 +363,8 @@ export function ComparisonChatTab({
       </div>
 
       {/* Input */}
-      <div className="border-t border-primary/10 bg-white p-4">
-        <div className="flex gap-2">
+      <div className="sticky bottom-0 border-t border-primary/10 bg-white chat-input-container">
+        <div className="flex gap-2 items-center p-4 pb-0">
           <input
             type="text"
             value={input}
@@ -370,14 +372,14 @@ export function ComparisonChatTab({
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
             placeholder="詢問他們之間的關係..."
             disabled={isLoading}
-            className="flex-1 px-4 py-2 border border-primary/20 rounded-classical
+            className="flex-1 min-w-0 px-4 py-2 border border-primary/20 rounded-classical
                        focus:outline-none focus:ring-2 focus:ring-primary/30
                        disabled:opacity-50"
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="px-4 py-2 bg-primary text-cream rounded-classical
+            className="flex-shrink-0 px-4 py-2 bg-primary text-cream rounded-classical
                        hover:bg-primary-dark transition-all
                        disabled:opacity-50 disabled:cursor-not-allowed
                        whitespace-nowrap"
