@@ -18,13 +18,12 @@ export function Footer() {
                   </linearGradient>
                 </defs>
                 <rect width="512" height="512" rx="110" fill="#FDF5E6"/>
-                <circle cx="256" cy="230" r="150" fill="none" stroke="#8B0000" strokeWidth="3" opacity="0.2"/>
-                <g transform="translate(256,210)">
-                  <polygon points="0,-46 7,-9 46,0 7,9 0,46 -7,9 -46,0 -7,-9" fill="#8B0000" opacity="0.85"/>
-                  <polygon points="0,-30 5,-6 30,0 5,6 0,30 -5,6 -30,0 -5,-6" fill="url(#fgold)"/>
-                  <circle r="5" fill="#D4AF37"/>
+                <circle cx="256" cy="256" r="200" fill="none" stroke="#8B0000" strokeWidth="5" opacity="0.18"/>
+                <g transform="translate(256,256)">
+                  <polygon points="0,-120 16,-22 120,0 16,22 0,120 -16,22 -120,0 -16,-22" fill="#8B0000" opacity="0.8"/>
+                  <polygon points="0,-78 12,-15 78,0 12,15 0,78 -12,15 -78,0 -12,-15" fill="url(#fgold)"/>
+                  <circle r="14" fill="#D4AF37"/>
                 </g>
-                <text x="256" y="370" fontFamily="serif" fontSize="68" fontWeight="bold" fill="#8B0000" textAnchor="middle">紫微</text>
               </svg>
               <span className="font-serif text-2xl text-cream">
                 紫微星盤
