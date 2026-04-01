@@ -16,7 +16,7 @@ export function Header() {
   const isActive = (path: string) => location.pathname === path
 
   return (
-    <header className="bg-cream border-b-2 border-primary/20 sticky top-0 z-50">
+    <header className="bg-cream border-b-2 border-primary/20 sticky top-0 z-50 pt-safe">
       {/* Decorative top border */}
       <div className="h-1 bg-gradient-to-r from-primary via-gold to-primary" />
 
