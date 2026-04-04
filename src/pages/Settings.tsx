@@ -405,61 +405,54 @@ export function Settings() {
             模型 (Model)
           </label>
 
-          {/* Fetch Models Button */}
-          <Button
-            variant="secondary"
-            onClick={fetchModels}
-            loading={loadingModels}
-            className="mb-3"
-          >
-            {loadingModels ? '取得中...' : '取得模型列表'}
-          </Button>
+          {/* Model Input with Datalist */}
+          <div className="flex gap-2">
+            <div className="flex-1">
+              <input
+                type="text"
+                list="models-list"
+                value={apiModel}
+                onChange={(e) => setApiModel(e.target.value)}
+                onFocus={() => {
+                  if (models.length === 0 && !modelError) {
+                    fetchModels()
+                  }
+                }}
+                placeholder="gpt-4o-mini"
+                className="w-full px-4 py-2 border border-primary/20 rounded-classical
+                           focus:outline-none focus:ring-2 focus:ring-primary/30
+                           bg-white font-mono text-sm"
+              />
+              <datalist id="models-list">
+                {models.map((model) => (
+                  <option key={model.id} value={model.id} label={model.name} />
+                ))}
+              </datalist>
+            </div>
+            <Button
+              variant="secondary"
+              onClick={fetchModels}
+              loading={loadingModels}
+              className="whitespace-nowrap"
+              title="重新取得最新模型列表"
+            >
+              {loadingModels ? '更新中...' : '更新列表'}
+            </Button>
+          </div>
 
           {/* Error Message */}
           {modelError && (
-            <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded-classical text-red-600 text-sm">
+            <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-classical text-red-600 text-sm">
               {modelError}
             </div>
           )}
 
-          {/* Models List */}
+          {/* Models Count */}
           {models.length > 0 && (
-            <div className="mb-3 max-h-60 overflow-y-auto border border-primary/20 rounded-classical">
-              {models.map((model) => (
-                <button
-                  key={model.id}
-                  type="button"
-                  onClick={() => setApiModel(model.id)}
-                  className={`w-full text-left px-4 py-2 text-sm transition-colors
-                    ${apiModel === model.id
-                      ? 'bg-primary text-cream'
-                      : 'hover:bg-cream'
-                    }`}
-                >
-                  <span className="font-mono">{model.id}</span>
-                  {model.name !== model.id && (
-                    <span className="ml-2 text-xs opacity-70">({model.name})</span>
-                  )}
-                </button>
-              ))}
-            </div>
+            <p className="mt-2 text-xs text-ink/60">
+              ✓ 已載入 {models.length} 個模型 • 在輸入框中滑動查看
+            </p>
           )}
-
-          {/* Manual Input */}
-          <div>
-            <label className="block text-xs text-ink/60 mb-1">
-              或直接輸入模型名稱：
-            </label>
-            <input
-              type="text"
-              value={apiModel}
-              onChange={(e) => setApiModel(e.target.value)}
-              placeholder="gpt-4o-mini"
-              className="w-full px-4 py-2 border border-primary/20 rounded-classical
-                         focus:outline-none focus:ring-2 focus:ring-primary/30
-                         bg-white font-mono text-sm"
-            />
-          </div>
 
           {/* Selected Model Display */}
           {apiModel && (
