@@ -19,7 +19,7 @@ interface ChatWindowProps {
 }
 
 export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindowProps) {
-  const { settings, selectedMaster, setSelectedMaster, addChatSession, getLatestChartSession, deleteChartSessions } = useAppStore()
+  const { settings, selectedMaster, setSelectedMaster, addChatSession, getLatestChartSession, deleteChartSessions, chatSessions } = useAppStore()
 
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [sessionId, setSessionId] = useState<string>('')
@@ -45,7 +45,7 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
       setMessages([])
       setSessionId(`session-${Date.now()}`)
     }
-  }, [chart.id, getLatestChartSession])
+  }, [chart.id, chatSessions])
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })

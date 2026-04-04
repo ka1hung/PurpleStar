@@ -21,7 +21,7 @@ export function ComparisonChatTab({
   comparison,
   charts,
 }: ComparisonChatTabProps) {
-  const { settings, selectedMaster, setSelectedMaster, addChatSession, getLatestComparisonSession, deleteComparisonSessions } = useAppStore()
+  const { settings, selectedMaster, setSelectedMaster, addChatSession, getLatestComparisonSession, deleteComparisonSessions, chatSessions } = useAppStore()
 
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [currentSessionId, setCurrentSessionId] = useState<string>('')
@@ -42,7 +42,7 @@ export function ComparisonChatTab({
       setMessages([])
       setCurrentSessionId(`session-${Date.now()}`)
     }
-  }, [comparison.id, getLatestComparisonSession])
+  }, [comparison.id, chatSessions])
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
