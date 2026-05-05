@@ -2,16 +2,15 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { BirthDataForm } from '../components/form'
 import { ChartGrid, ChartInterpretation } from '../components/chart'
-import { ChatWindow } from '../components/chat'
 import { calculateChart } from '../lib/ziwei'
 import { useAppStore } from '../store'
-import type { BirthData, Chart } from '../types'
+import type { BirthData } from '../types'
 
 export function Calculator() {
-  const [chart, setChart] = useState<Chart | null>(null)
+  const { charts, addChart, deleteChart, currentChart, setCurrentChart } = useAppStore()
+  const chart = currentChart
+  const setChart = setCurrentChart
   const [isCalculating, setIsCalculating] = useState(false)
-  const [showChat, setShowChat] = useState(false)
-  const { charts, addChart, deleteChart } = useAppStore()
   const navigate = useNavigate()
 
   const handleCalculate = async (birthData: BirthData) => {
@@ -22,8 +21,8 @@ export function Calculator() {
 
     try {
       const calculatedChart = calculateChart(birthData)
-      setChart(calculatedChart)
       addChart(calculatedChart)
+      setChart(calculatedChart)
     } catch (error) {
       console.error('Chart calculation error:', error)
       alert('命盤計算發生錯誤，請檢查輸入資料')
@@ -34,7 +33,6 @@ export function Calculator() {
 
   const handleReset = () => {
     setChart(null)
-    setShowChat(false)
   }
 
   const handleStartComparison = (chartId: string) => {
@@ -130,16 +128,11 @@ export function Calculator() {
               重新排盤
             </button>
             <button
-              onClick={() => setShowChat(!showChat)}
-              className={`
-                px-6 py-2 border-2 rounded-classical transition-all
-                ${showChat
-                  ? 'bg-gold border-gold text-ink'
-                  : 'border-gold text-gold hover:bg-gold hover:text-ink'
-                }
-              `}
+              onClick={() => navigate(`/chat/${chart.id}`)}
+              className="px-6 py-2 border-2 border-gold text-gold rounded-classical
+                         hover:bg-gold hover:text-ink transition-all"
             >
-              {showChat ? '隱藏 AI 諮詢' : 'AI 深度解盤'}
+              AI 深度解盤
               <span className="ml-1 text-xs opacity-70">(進階)</span>
             </button>
           </div>
@@ -156,35 +149,6 @@ export function Calculator() {
             <ChartInterpretation chart={chart} />
           </div>
 
-        </div>
-      )}
-
-      {/* AI Chat Overlay */}
-      {showChat && chart && (
-        <div className="fixed inset-0 bg-ink/60 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl max-h-[90vh] flex flex-col">
-            {/* Header */}
-            <div className="flex items-center justify-between p-4 border-b border-primary/10">
-              <h2 className="font-serif text-xl text-primary">
-                AI 命理諮詢
-                <span className="ml-2 text-sm bg-gold/20 text-gold-dark px-2 py-1 rounded">
-                  進階功能
-                </span>
-              </h2>
-              <button
-                onClick={() => setShowChat(false)}
-                className="p-2 text-ink/60 hover:text-ink hover:bg-ink/10 rounded-lg transition-all"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            {/* Chat content */}
-            <div className="flex-1 overflow-hidden">
-              <ChatWindow chart={chart} />
-            </div>
-          </div>
         </div>
       )}
 

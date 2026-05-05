@@ -6,4 +6,6 @@ export { About } from './About'
 export { Privacy } from './Privacy'
 export { Disclaimer } from './Disclaimer'
 export { Settings } from './Settings'
+export { ChatPage } from './ChatPage'
+export { ComparisonChatPage } from './ComparisonChatPage'
 

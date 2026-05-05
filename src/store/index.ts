@@ -131,6 +131,14 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'purple-star-storage',
+      version: 1,
+      migrate: (persistedState: unknown, version: number) => {
+        const state = persistedState as { selectedMaster?: string } | null
+        if (state && version < 1 && state.selectedMaster === 'humor') {
+          state.selectedMaster = 'tcm'
+        }
+        return state
+      },
       partialize: (state) => ({
         charts: state.charts,
         comparisons: state.comparisons,

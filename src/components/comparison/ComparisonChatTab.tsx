@@ -46,6 +46,7 @@ export function ComparisonChatTab({
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
 
   const scrollToBottom = () => {
@@ -59,6 +60,14 @@ export function ComparisonChatTab({
       setShowScrollButton(!isNearBottom)
     }
   }
+
+  // Auto-grow textarea (max ~5 lines)
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = Math.min(el.scrollHeight, 140) + 'px'
+  }, [input])
 
   const handleClearOldSessions = () => {
     if (confirm('確定要刪除所有舊對話紀錄嗎？目前對話將被保存。')) {
@@ -169,7 +178,7 @@ export function ComparisonChatTab({
 
   if (!isApiConfigured) {
     return (
-      <div className="bg-white rounded-lg shadow-classical p-6 text-center">
+      <div className="flex flex-col h-full bg-white items-center justify-center p-6 text-center">
         <div className="text-5xl mb-4">⚙️</div>
         <h3 className="font-serif text-xl text-primary mb-4">請先設定 AI</h3>
         <p className="text-ink/60 text-sm mb-6">
@@ -190,9 +199,9 @@ export function ComparisonChatTab({
   const master = getMasterById(selectedMaster)
 
   return (
-    <div className="bg-white rounded-lg shadow-classical overflow-hidden flex flex-col h-[80vh]">
+    <div className="bg-white overflow-hidden flex flex-col h-full">
       {/* Master selector header */}
-      <div className="border-b border-primary/10">
+      <div className="border-b border-primary/10 flex-shrink-0">
         <div className="flex items-center gap-2 p-4">
           <button
             onClick={() => setShowMasterSelector(!showMasterSelector)}
@@ -363,18 +372,24 @@ export function ComparisonChatTab({
       </div>
 
       {/* Input */}
-      <div className="sticky bottom-0 border-t border-primary/10 bg-white chat-input-container">
-        <div className="flex gap-2 items-center p-4 pb-0">
-          <input
-            type="text"
+      <div className="flex-shrink-0 border-t border-primary/10 bg-white chat-input-container">
+        <div className="flex gap-2 items-end p-4 pb-0">
+          <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder="詢問他們之間的關係..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleSend()
+              }
+            }}
+            placeholder="詢問他們之間的關係...（Enter 送出，Shift+Enter 換行）"
             disabled={isLoading}
+            rows={1}
             className="flex-1 min-w-0 px-4 py-2 border border-primary/20 rounded-classical
                        focus:outline-none focus:ring-2 focus:ring-primary/30
-                       disabled:opacity-50"
+                       disabled:opacity-50 resize-none leading-6"
           />
           <button
             onClick={handleSend}

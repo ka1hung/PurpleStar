@@ -91,7 +91,7 @@ export function Home() {
               { name: '紫微姐姐', emoji: '💜', desc: '療癒系' },
               { name: '鐵口神算', emoji: '⚡', desc: '江湖派' },
               { name: '科學命理師', emoji: '🔬', desc: '理性派' },
-              { name: '幽默大師', emoji: '😄', desc: '諧趣派' },
+              { name: '老中醫', emoji: '🌿', desc: '卜卦中醫' },
               { name: '廖阿姨', emoji: '🔮', desc: '台式神婆' },
               { name: '小神童', emoji: '🌸', desc: '清新可愛' },
             ].map((master, index) => (

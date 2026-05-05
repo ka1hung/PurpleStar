@@ -1,10 +1,10 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAppStore } from '../../store'
 import { OverviewTab } from './OverviewTab'
 import { PalaceComparisonTab } from './PalaceComparisonTab'
 import { StarComparisonTab } from './StarComparisonTab'
 import { TransformationTab } from './TransformationTab'
-import { ComparisonChatTab } from './ComparisonChatTab'
 import type { ChartComparison } from '../../types'
 
 type TabType = 'overview' | 'palace' | 'stars' | 'transformation' | 'ai'
@@ -17,6 +17,7 @@ interface ComparisonViewProps {
 export function ComparisonView({ comparison, onBack }: ComparisonViewProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview')
   const { charts } = useAppStore()
+  const navigate = useNavigate()
 
   // Verify all charts still exist
   const comparisonCharts = comparison.members
@@ -82,7 +83,13 @@ export function ComparisonView({ comparison, onBack }: ComparisonViewProps) {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                if (tab.id === 'ai') {
+                  navigate(`/chat/comparison/${comparison.id}`)
+                  return
+                }
+                setActiveTab(tab.id)
+              }}
               className={`
                 flex-1 sm:flex-none px-6 sm:px-8 py-4 font-medium transition-all
                 border-b-2 whitespace-nowrap
@@ -113,9 +120,6 @@ export function ComparisonView({ comparison, onBack }: ComparisonViewProps) {
         )}
         {activeTab === 'transformation' && (
           <TransformationTab comparison={comparison} charts={comparisonCharts} />
-        )}
-        {activeTab === 'ai' && (
-          <ComparisonChatTab comparison={comparison} charts={comparisonCharts} />
         )}
       </div>
     </div>

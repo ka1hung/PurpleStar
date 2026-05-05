@@ -33,6 +33,7 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
 
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const messagesContainerRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
 
   // 進入時自動加載該命盤的最新對話
@@ -59,6 +60,14 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
       setShowScrollButton(!isNearBottom)
     }
   }
+
+  // Auto-grow textarea (max ~5 lines)
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = Math.min(el.scrollHeight, 140) + 'px'
+  }, [input])
 
   const master = getMasterById(selectedMaster)
 
@@ -167,7 +176,7 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
 
   if (!isApiConfigured) {
     return (
-      <div className="bg-white rounded-lg shadow-classical p-6 text-center">
+      <div className="flex flex-col h-full bg-white items-center justify-center p-6 text-center">
         <div className="text-5xl mb-4">⚙️</div>
         <h3 className="font-serif text-xl text-primary mb-4">請先設定 AI</h3>
         <p className="text-ink/60 text-sm mb-6">
@@ -185,9 +194,9 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
   }
 
   return (
-    <div className="bg-white rounded-lg shadow-classical overflow-hidden">
+    <div className="flex flex-col h-full bg-white overflow-hidden">
       {/* Master selector - collapsible */}
-      <div className="border-b border-primary/10">
+      <div className="border-b border-primary/10 flex-shrink-0">
         <div className="flex items-center gap-2 p-4">
           <button
             onClick={() => setShowMasterSelector(!showMasterSelector)}
@@ -236,11 +245,11 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
       </div>
 
       {/* Chat messages */}
-      <div className="relative">
+      <div className="relative flex-1 min-h-0">
         <div
           ref={messagesContainerRef}
           onScroll={handleScroll}
-          className="h-96 overflow-y-auto p-4 space-y-4 bg-cream/30">
+          className="h-full overflow-y-auto p-4 space-y-4 bg-cream/30">
         {messages.length === 0 && !streamingText && (
           <div className="text-center py-8">
             <div className="text-5xl mb-4">{master.avatar}</div>
@@ -348,19 +357,25 @@ export function ChatWindow({ chart, comparisonId, onSessionCreated }: ChatWindow
         )}
       </div>
 
-      {/* Input - sticky at bottom for mobile */}
-      <div className="sticky bottom-0 border-t border-primary/10 bg-white chat-input-container">
-        <div className="flex gap-2 items-center p-4 pb-0">
-          <input
-            type="text"
+      {/* Input - pinned at bottom */}
+      <div className="flex-shrink-0 border-t border-primary/10 bg-white chat-input-container">
+        <div className="flex gap-2 items-end p-4 pb-0">
+          <textarea
+            ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-            placeholder="請輸入您想詢問的問題..."
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                handleSend()
+              }
+            }}
+            placeholder="請輸入您想詢問的問題...（Enter 送出，Shift+Enter 換行）"
             disabled={isLoading}
+            rows={1}
             className="flex-1 min-w-0 px-4 py-2 border border-primary/20 rounded-classical
                        focus:outline-none focus:ring-2 focus:ring-primary/30
-                       disabled:opacity-50"
+                       disabled:opacity-50 resize-none leading-6"
           />
           <button
             onClick={handleSend}

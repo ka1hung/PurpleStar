@@ -78,7 +78,7 @@ export type MasterType =
   | 'sister'
   | 'tiekou'
   | 'science'
-  | 'humor'
+  | 'tcm'
   | 'liao'
   | 'child'
 
